@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Projekt Management Rendszer</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel='stylesheet' text="text/css" href="{{ url_for('static', filename='font-awesome/css/font-awesome.min.css')}}">
+    <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/base.css') }}">    
+    <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/timer.css') }}">    
+     
+<body>
+    {% include 'includes/_navbar.html' %}
+    <main role="main" class="container">
+        <div class="row">               
+            <div class="col-md-8">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}                        
+                        {% for category, message in messages %}
+                            {% if current_user.is_authenticated %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="X">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="X">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>                        
+                            {% endif %}                            
+                        {% endfor %}                        
+                    {% endif %}
+                {% endwith %}
+                {% block body %}{% endblock %}
+            </div>           
+            {% if current_user.is_authenticated %}
+                <div class="col-md-4">
+                    <div class="content-section">
+                        <h3 style="text-align: center;">Pomodoro</h3>
+                        <div class="clock">
+                            <div class="timer">
+                              <div class="progress-radial step-0 session">
+                                <div class="main-display overlay">
+                                </div><!-- /.main-display -->
+                              </div><!-- /.progress-radial -->
+                            </div><!-- /.timer -->
+                            <div class="session-info">
+                              <div class="session-count">
+                              </div><!-- /.session-count -->
+                            </div><!-- /.session-info -->
+                            <div class="settings">
+                              <div class="time-session">
+                                <h6 class="timer-h">Munkamenet hossza</h6>
+                                <p class="time-session-display"></p>
+                                <button class="minus">-</button>
+                                <button class="plus">+</button>
+                              </div><!-- /.time-session -->
+                              <div class="time-break">
+                                <h6 class="timer-h">Szünet hossza</h6>
+                                <p class="time-break-display"></p>
+                                <button class="minus">-</button>
+                                <button class="plus">+</button>
+                              </div><!-- /.time-break -->
+                            </div><!-- /.settings -->
+                            <div class="controls">
+                              <button class="time-start">Indítás</button>
+                              <button class="time-reset">Újra</button>
+                            </div><!-- /.controls -->
+                          </div><!-- /.clock -->
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+    
+    {% include 'includes/_footer.html' %}
+    
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    
+    <!-- Charts -->
+    <!-- amcharts -->
+    <script src="https://www.amcharts.com/lib/version/4.6.0/core.js"></script>
+    <script src="https://www.amcharts.com/lib/version/4.6.0/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/version/4.6.0/themes/material.js"></script>
+
+    <!-- Timer -->
+    <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+ <table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+        <th scope="col">#</th>
+        <th scope="col">Név</th>
+        <th scope="col">Felhasználó név</th>
+        <th scope="col">E-mail cím</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+        <td>
+            {{ user.id }}
+        </td>
+        <td>
+            {{ user.fullName }}        
+        </td>
+        </td>
+        <td>
+            {{ user.userName }}        
+        </td>
+        </td>
+        <td>
+            {{ user.email}}        
+        </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
