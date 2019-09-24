@@ -1,30 +1,86 @@
 $(function() {
-  
-    // initialize the clock and display
+    // Alapértelmezett config / localstorage betöltés a clockhoz   
+    
+    if (localStorage.getItem('active') !== null) {
+        if (localStorage.getItem('active') == 1) {
+            setActive = true;            
+        } else {
+            setActive = false;
+        }
+    } else {
+        setActive = false;
+    }
+
+    if (localStorage.getItem('type') !== null) {        
+        if (localStorage.getItem('type') == "Break") {
+            setType = "Break";
+        } else {
+            setType = "Session";
+        }
+    } else {
+        setType = "Session";
+    }
+
+    if (localStorage.getItem('startTime') !== null) {
+        setStartTime = localStorage.getItem('startTime');
+    } else {
+        setStartTime = 1500;
+    }
+
+    if (localStorage.getItem('currentTime') !== null) {
+        setCurrentTime = localStorage.getItem('currentTime');
+    } else {
+        setCurrentTime = 1500;
+    }
+
+    if (localStorage.getItem('sessionTime') !== null) {
+        setSessionTime = localStorage.getItem('sessionTime');
+    } else {
+        setSessionTime = 1500;
+    }
+
+    if (localStorage.getItem('breakTime') !== null) {
+        setBreakTime = localStorage.getItem('breakTime');
+    } else {
+        setBreakTime = 300;
+    }    
+    
+    if (localStorage.getItem('sessionCount') !== null) {
+        setSessionCount = localStorage.getItem('sessionCount');
+    } else {
+        setSessionCount = 0;
+    }
+
+    // Inicializálás
     var clock = new Clock();
+    if (setActive == true) {
+        clock.toggleClock();
+        clock.toggleClock();
+    }  
     clock.displayCurrentTime();
     clock.displaySessionTime();
     clock.displayBreakTime();
     clock.displaySessionCount();
     
-    // add event listeners 
+    
+    // Esemény kezelők hozzáadása
     $(".time-session .minus").click(function() {
-      clock.changeSessionTime("subtract");
+        clock.changeSessionTime("subtract");
     });
     $(".time-session .plus").click(function() {
-      clock.changeSessionTime("add");
+        clock.changeSessionTime("add");
     });
     $(".time-break .minus").click(function() {
-      clock.changeBreakTime("subtract");
+        clock.changeBreakTime("subtract");
     });
     $(".time-break .plus").click(function() {
-      clock.changeBreakTime("add");
+        clock.changeBreakTime("add");
     });
     $(".time-start").click(function() {
-      clock.toggleClock();
+        clock.toggleClock();
     });
     $(".time-reset").click(function() {
-      clock.reset();
+        clock.reset();
     });
     
     
@@ -33,17 +89,26 @@ $(function() {
       
       var _this = this, // needed to pass 'this' to setInterval
           timer, // reference to the interval
-          active = false, // is the timer running?
-          type = "Session", // type -- "Session" or "Break"
-          startTime = 1500, // stores the starting value of timer
-          currentTime = 1500, // current time on the clock in seconds
-          sessionTime = 1500, // stores the session time in seconds
-          breakTime = 300, // stores the break time in seconds
-          sessionCount = 0, // stores the number of session that have passed
+          active = setActive, // is the timer running?
+          type = setType, // type -- "Session" or "Break"
+          startTime = setStartTime, // stores the starting value of timer
+          currentTime = setCurrentTime, // current time on the clock in seconds
+          sessionTime = setSessionTime, // stores the session time in seconds
+          breakTime = setBreakTime, // stores the break time in seconds
+          sessionCount = setSessionCount, // stores the number of session that have passed
           startAudio = new Audio("https://jpk-image-hosting.s3.amazonaws.com/pomodoro-app/audio/start.mp3"),
           endAudio = new Audio("https://jpk-image-hosting.s3.amazonaws.com/pomodoro-app/audio/end.mp3");
       
-      // formatTime returns a friendly formatted time string
+          // Mentés  
+          localStorage.setItem('active', (active == true ? 1 : 0) );
+          localStorage.setItem('type', type);
+          localStorage.setItem('startTime', startTime);
+          localStorage.setItem('currentTime', currentTime);
+          localStorage.setItem('sessionTime', sessionTime);
+          localStorage.setItem('breakTime', breakTime);
+          localStorage.setItem('sessionCount', sessionCount);
+
+      // Formázás  
       function formatTime(secs) {
         var result = "";
         var seconds = secs % 60;
@@ -57,25 +122,26 @@ $(function() {
         return result;
       }
       
-      // method to add/substract 60 seconds from session time
-      // only works if timer is not active
+      // Munkamenet hossz beállítása      
       this.changeSessionTime = function(str) {
         if (active === false) {
           this.reset();
           if (str === "add") {
-            sessionTime += 60;
+            sessionTime += 60;            
           } else if ( sessionTime > 60){
             sessionTime -= 60;
           }
           currentTime = sessionTime;
           startTime = sessionTime;
+          localStorage.setItem('sessionTime', sessionTime);
+          localStorage.setItem('currentTime', sessionTime);
+          localStorage.setItem('startTime', sessionTime);
           this.displaySessionTime();
           this.displayCurrentTime();
         }
       }
       
-      // method to add/subtract 60 seconds from break time
-      // only works if timer is not active
+      // Szünet hossz beállítása
       this.changeBreakTime = function(str) {
         if (active === false) {
           this.reset();
@@ -84,11 +150,11 @@ $(function() {
           } else if (breakTime > 60) {
             breakTime -= 60;
           }
+          localStorage.setItem('breakTime', breakTime);
           this.displayBreakTime();
         }
       }
-      
-      // inserts the current time variable into the DOM
+      // Megjelenítés
       this.displayCurrentTime = function() {
         $('.main-display').text(formatTime(currentTime));
         if (type === "Session" && $('.progress-radial').hasClass('break')) {
@@ -101,17 +167,14 @@ $(function() {
         });
       }
       
-      // inserts the session time variable into the DOM
       this.displaySessionTime = function() {
         $('.time-session .time-session-display').text(parseInt(sessionTime / 60) + " perc");
       }
       
-      // inserts the break time variable into the DOM
       this.displayBreakTime = function() {
         $('.time-break .time-break-display').text(parseInt(breakTime / 60) + " perc");
       }
       
-      // inserts the session count variable into the DOM
       this.displaySessionCount = function() {
         if (sessionCount === 0) {
           $('.session-count').html("");
@@ -122,16 +185,18 @@ $(function() {
         }
       }
       
-      // toggles the timer start/pause
+      // Indítás / Megállítás
       this.toggleClock = function() {
-        if (active === true) {
+        if (active === true ) {
           clearInterval(timer);
           $('.time-start').text('Indítás');
           active = false;
+          localStorage.setItem('active', 0);
         } else {
           $('.time-start').text('Megállítás');
           if (sessionCount === 0) {
             sessionCount = 1;
+            localStorage.setItem('sessionCount', sessionCount);
             this.displaySessionCount();
             startAudio.play();
           }
@@ -139,27 +204,35 @@ $(function() {
             _this.stepDown();
           }, 1000);
           active = true;
+          localStorage.setItem('active', 1);
         }
       }
       
-      // steps the timer down by 1
-      // when current time runs out, alternates new Session or Break
-      this.stepDown = function() {
+    // Óra tick 
+    this.stepDown = function() {
         if (currentTime > 0) {
-          currentTime --;
+            currentTime --;
+            localStorage.setItem('currentTime', currentTime);
           this.displayCurrentTime();
           if (currentTime === 0) {
             if (type === "Session") {
               currentTime = breakTime;
               startTime = breakTime;
               type = "Break";
+              localStorage.setItem('currentTime', currentTime);
+              localStorage.setItem('startTime', startTime);
+              localStorage.setItem('type', type);
               this.displaySessionCount();
               endAudio.play();
             } else {
-              sessionCount ++;
+              sessionCount ++;              
               currentTime = sessionTime;
               startTime = sessionTime;
               type = "Session";
+              localStorage.setItem('sessionCount', sessionCount);
+              localStorage.setItem('currentTime', currentTime);
+              localStorage.setItem('startTime', startTime);
+              localStorage.setItem('type', type);
               this.displaySessionCount();
               startAudio.play();
             }
@@ -167,13 +240,17 @@ $(function() {
         }
       }
       
-      // reset the timer
+      // Reset az órát
       this.reset = function() {
         clearInterval(timer);
         active = false;
         type = "Session";
         currentTime = sessionTime;
         sessionCount = 0;
+        localStorage.setItem('active', 0);
+        localStorage.setItem('type', type);
+        localStorage.setItem('currentTime', currentTime);
+        localStorage.setItem('sessionCount', sessionCount);
         $('.time-start').text('Indítás');
         this.displayCurrentTime();
         this.displaySessionTime();

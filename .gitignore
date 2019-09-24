@@ -4,6 +4,7 @@ __pycache__
 projectmanage/__pycache__
 migrations/__pycache__
 config.py
+info.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

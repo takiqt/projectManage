@@ -4,7 +4,7 @@ Takács Dániel
 
 MSc Diplomamunka 
 
-## Virtual Env
+### Virtual Env
 ---
 
 **Telepítés**
@@ -35,7 +35,7 @@ MSc Diplomamunka
 + python -m pip install -r requirements.txt
 
 
-## Adatbázis migráció
+### Adatbázis migráció
 ---
 
 **Ellenőrzés, változások lekövetése**
@@ -45,3 +45,8 @@ MSc Diplomamunka
 **Adatbázis szerkezet frissítése**
 
 + python run.py db upgrade
+
+
+### Server indítása
+---
++ python run.py runserver --host=127.0.0.2 --port 8000 --threaded
