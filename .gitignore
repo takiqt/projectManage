@@ -5,7 +5,8 @@ projectmanage/__pycache__
 migrations/__pycache__
 config.py
 info.txt
-
+charts.pdf
+pm.db
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

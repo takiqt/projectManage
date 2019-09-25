@@ -45,7 +45,7 @@ class CreateAdmin(Command):
                 'admin' : True
             }
             newUser = User(**newUserData)
-            db.session.add(user)
+            db.session.add(newUser)
             db.session.commit()
             print(f'Admin felhasználó hozzáadva {userName} - {email}')
 
