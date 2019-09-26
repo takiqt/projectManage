@@ -136,7 +136,39 @@ def addProject():
         return render_template('Project/addProject.html', **data)
 
 
+@app.route("/projectData/<int:projectId>")
+@login_required
+def projectData(projectId):
+    project = Project.query.get_or_404(projectId)
+    return render_template('Project/projectData.html', project=project, menuTitle='adatlap')
+    
 
+@app.route("/projectLeaders/<int:projectId>", methods=['POST', 'GET'])
+@login_required
+def projectLeaders(projectId):
+    project = Project.query.get_or_404(projectId)
+    form = AddProjectLeader()
+    form.users.query = User.query.all()
+
+    if form.validate_on_submit():
+        userId = form.users.data.id        
+        user = User.query.filter_by(id=userId).first()
+        project.leaders.append(user)
+        db.session.commit()    
+        
+
+    return render_template('Project/projectUsers.html', project=project, menuTitle='vezetők', form=form)
+
+
+@app.route("/projectWorkers/<int:projectId>", methods=['POST', 'GET'])
+@login_required
+def projectWorkers(projectId):
+    project = Project.query.get_or_404(projectId)
+    return render_template('Project/projectUsers.html', project=project, menuTitle='munkatársak')
+
+
+
+## Test chartok
 @app.route('/test1')
 @login_required
 def test1():

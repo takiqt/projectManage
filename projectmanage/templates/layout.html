@@ -10,7 +10,7 @@
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/base.css') }}">    
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/timer.css') }}">    
      
-<body>
+  <body>
     {% include 'includes/_navbar.html' %}
     <main role="main" class="container">
         <div class="row">               
@@ -39,7 +39,7 @@
                 {% block body %}{% endblock %}
             </div>           
             {% if current_user.is_authenticated %}
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="content-section">
                         <h3 style="text-align: center;">Pomodoro</h3>
                         <div class="clock">
@@ -76,7 +76,6 @@
                 </div>
             {% endif %}
         </div>
-
     </main>
     
     {% include 'includes/_footer.html' %}

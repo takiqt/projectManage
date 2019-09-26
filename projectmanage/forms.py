@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import Form, StringField, DateField, IntegerField, SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 class RegisterFrom(FlaskForm):
     userName = StringField('Felhasználó név', 
@@ -29,7 +30,7 @@ class RegisterFrom(FlaskForm):
                                 Length(min=6, max=12, message="Mező hosszának 6 és 12 karakter között kell lennie!"), 
                                 EqualTo('password', message="Jelszóval egyeznie kell!")
                             ]) 
-    save = SubmitField('Regisztráció')
+    save = SubmitField('Felvitel')
 
 class LoginForm(FlaskForm):
     userName = StringField('Felhasználó név', 
@@ -47,3 +48,9 @@ class AddProjectForm(FlaskForm):
                             ]) 
     
     save = SubmitField('Felvitel')
+
+class AddProjectWorker(FlaskForm):
+    users = QuerySelectField(allow_blank=False, get_label='fullName')
+
+class AddProjectLeader(FlaskForm):
+    users = QuerySelectField(allow_blank=False, get_label='fullName')

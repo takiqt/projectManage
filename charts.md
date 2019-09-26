@@ -22,3 +22,8 @@ MIT licensz.
 
 https://github.com/frappe/gantt
 
+### Brynum Gantt
+---
+Minden van benne, ez a legjobb , csak 950$.
+
+https://www.bryntum.com/products/gantt/

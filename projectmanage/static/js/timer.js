@@ -60,8 +60,7 @@ $(function() {
     clock.displayCurrentTime();
     clock.displaySessionTime();
     clock.displayBreakTime();
-    clock.displaySessionCount();
-    
+    clock.displaySessionCount();    
     
     // Esemény kezelők hozzáadása
     $(".time-session .minus").click(function() {
@@ -87,12 +86,12 @@ $(function() {
     // Clock contains all the properties and methods to run a pomodoro clock
     function Clock() {
       
-      var _this = this, // needed to pass 'this' to setInterval
-          timer, // reference to the interval
-          active = setActive, // is the timer running?
-          type = setType, // type -- "Session" or "Break"
-          startTime = setStartTime, // stores the starting value of timer
-          currentTime = setCurrentTime, // current time on the clock in seconds
+      var _this = this, 
+          timer,
+          active = setActive, // Fut-e az óra
+          type = setType, // Munka vagy szünet
+          startTime = setStartTime, // Kezdő idő hossza
+          currentTime = setCurrentTime, //  Aktuális idő az órán
           sessionTime = setSessionTime, // stores the session time in seconds
           breakTime = setBreakTime, // stores the break time in seconds
           sessionCount = setSessionCount, // stores the number of session that have passed
