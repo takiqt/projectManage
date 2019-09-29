@@ -42,15 +42,19 @@ class LoginForm(FlaskForm):
 
 class AddProjectForm(FlaskForm):
     name = StringField('Projekt név', 
-                            validators=[
-                                DataRequired(message="Megadása kötelező!"), 
-                                Length(min=6, max=20, message="Mező hosszának 6 és 20 karakter között kell lennie!")
-                            ]) 
-    
+                validators=[
+                    DataRequired(message="Megadása kötelező!"), 
+                    Length(min=10, max=50, message="Mező hosszának 10 és 50 karakter között kell lennie!")
+                ]) 
+    description = TextAreaField('Leírás', validators=[DataRequired(message="Megadása kötelező!")])
+    dateStart = DateField('Kezdő dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
+    dateEnd = DateField('Végző dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])    
     save = SubmitField('Felvitel')
 
 class AddProjectWorker(FlaskForm):
-    users = QuerySelectField(allow_blank=False, get_label='fullName')
+    users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
+    save = SubmitField('Felvitel')
 
 class AddProjectLeader(FlaskForm):
-    users = QuerySelectField(allow_blank=False, get_label='fullName')
+    users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
+    save = SubmitField('Felvitel')

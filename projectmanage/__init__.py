@@ -5,13 +5,13 @@ from flask_bcrypt import Bcrypt
 from flask_script import Command, Manager, Option
 from flask_migrate import Migrate, MigrateCommand
 from sqlalchemy import or_, and_
-
-
+from flask_datepicker import datepicker
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+datepicker(app)
 loginManager = LoginManager()
 loginManager.init_app(app)
 loginManager.login_view = 'login'
@@ -35,7 +35,7 @@ class CreateAdmin(Command):
     def run(self, userName, fullName, email, password):
         user = User.query.filter(or_(User.userName == userName, User.email == email)).first()
         if user is not None:
-            print('Adott felhasználónév vagy email foglalt')
+            print('Adott felhasználónév vagy email foglalt!')
         else:
             newUserData = {
                 'userName' : userName,

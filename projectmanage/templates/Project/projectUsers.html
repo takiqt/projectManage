@@ -1,40 +1,75 @@
 {% extends 'layout.html' %}
 {% block body %}   
-    <div class="content-section">
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Projekt {{ menuTitle }} - {{ project.name }}
-            </legend>             
-            <div class="form-group"> 
-                <p>Vezetők</p>
-                <ul>
-                    {% for user in project.leaders %}
-                    <li>
-                        {{ user.fullName }}
-                        
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{{ url_for('projectLeaders', projectId=project.id) }}">Szerkeszt</a>
-            </div> 
-            <div class="form-group"> 
-                <p>Munkások</p>
-                <ul>
-                    {% for user in project.workers %}
-                    <li>
-                        {{ user.fullName }}
-                        
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{{ url_for('projectWorkers', projectId=project.id) }}">Szerkeszt</a>      
-            </div>            
-        </fieldset>   
-
+    <div class="content-section">                    
+        <h2>
+            Projekt&nbsp;{{ menuTitle }}:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
+        </h2>
+        <hr>
+        <div class="container">
+            {% if mode == 'workers' %}
+                {% for user in project.workers %}
+                    <div class="row">
+                        <div class="col-4 font-weight-bold">
+                            {{ user.fullName }} 
+                        </div>
+                        <div class="col-8">
+                            {% if current_user == project.creator %}
+                                <form action="{{ url_for('deleteProjectWorker', projectId=project.id) }}" method="POST">
+                                    <input type="hidden" name="delUserId" value="{{ user.id }}">
+                                    <button type="submit" class="btn btn-outline-danger float-right"><i class="fa fa-remove"></i>&nbsp;Törlés</button>                        
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <br>
+                {% endfor %}
+            {% elif mode == 'leaders' %}
+                {% for user in project.leaders %}
+                    <div class="row">
+                        <div class="col-4 font-weight-bold">
+                            {{ user.fullName }} 
+                        </div>
+                        <div class="col-8">
+                            {% if current_user == project.creator %}
+                                <form action="{{ url_for('deleteProjectLeader', projectId=project.id) }}" method="POST">
+                                    <input type="hidden" name="delUserId" value="{{ user.id }}">
+                                    <button type="submit" class="btn btn-outline-danger float-right"><i class="fa fa-remove"></i>&nbsp;Törlés</button>                        
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <br>                     
+                {% endfor %}
+            {% endif %}
+        </div>    
+        <br>
+        <hr> 
         <form action="" method="POST">
             {{ form.hidden_tag() }}
-            {{ form.users }}
-            <button type="submit">Felvitel</button>
+            <div class="form-group">
+                <div class="container">
+                    <div class="row vertical-center">
+                        <div class="col-4 font-weight-bold">
+                            {{ form.users.label(class="form-control-label") }}
+                        </div>
+                        <div class="col-8">
+                            {% if form.users.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.users.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.users(class="form-control") }}    
+                            {% endif %}
+                        </div>
+                    </div>                        
+                </div>                     
+            </div>           
+            <div class="form-group">
+                {{ form.save(class="btn btn-outline-info") }}
+            </div>
         </form>
+        <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>
     </div> 
 {% endblock %}

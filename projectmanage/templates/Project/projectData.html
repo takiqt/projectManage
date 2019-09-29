@@ -2,33 +2,143 @@
 {% block body %}   
     <div class="content-section">
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Projekt {{ menuTitle }} - {{ project.name }}
-            </legend> 
-            <div class="form-group"> 
-                <p>Vezetők</p>
-                <ul>
-                    {% for user in project.leaders %}
-                    <li>
-                        {{ user.fullName }}
-                        
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{{ url_for('projectLeaders', projectId=project.id) }}">Szerkeszt</a>
+            <h2>
+                Projekt&nbsp;{{ menuTitle }}:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
+            </h2>
+            <hr>
+            <div class="container">        
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Leírás
+                    </div>                    
+                    <div class="col-8">
+                        {{ project.description }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Kezdés
+                    </div>                    
+                    <div class="col-8">
+                        {{ project.dateStart.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Végzés
+                    </div>                
+                    <div class="col-8">
+                        {{ project.dateEnd.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>     
+                <hr> 
+                <div class="row">   
+                    <div class="col-4 font-weight-bold">
+                        Vezetők&emsp;
+                        {% if current_user == project.creator %}
+                            <a href="{{ url_for('projectLeaders', projectId=project.id) }}" class="btn btn-outline-info float-right">Kezelés</a>
+                        {% endif %}
+                    </div>                
+                    <div class="col-8">
+                        {% if project.leaders.count() %}
+                            <ul>
+                                {% for user in project.leaders %}
+                                <li>
+                                    {{ user.fullName }}                                
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            Nincs rögzítve vezető a projekthez! 
+                            <br>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">   
+                    <div class="col-4 font-weight-bold">
+                        Munkatársak&emsp;
+                        {% if current_user == project.creator %}
+                            <a href="{{ url_for('projectWorkers', projectId=project.id) }}" class="btn btn-outline-info float-right">Kezelés</a>
+                        {% endif %}
+                    </div>                
+                    <div class="col-8">
+                        {% if project.workers.count() %}
+                            <ul>
+                                {% for user in project.workers %}
+                                <li>
+                                    {{ user.fullName }}                                
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            Nincs rögzítve munkatárs a projekthez!&emsp; 
+                        {% endif %} 
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Rögzítő felhasználó
+                    </div>                
+                    <div class="col-8">
+                        {{ project.creator.fullName }}
+                    </div>
+                </div>            
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Rögzítés ideje
+                    </div>                
+                    <div class="col-8">
+                        {{ project.createTime.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>            
             </div> 
-            <div class="form-group"> 
-                <p>Munkások</p>
-                <ul>
-                    {% for user in project.workers %}
-                    <li>
-                        {{ user.fullName }}
-                        
-                    </li>
-                    {% endfor %}
-                </ul>
-                <a href="{{ url_for('projectWorkers', projectId=project.id) }}">Szerkeszt</a>      
-            </div>            
-        </fieldset>   
-    </div> 
+        </fieldset>
+    </div>
+    <!-- Munkák -->
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Projekt munkái
+            </h2>
+            <hr>
+        </fieldset>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Név</th>
+                    <th scope="col">Kezdés</th>
+                    <th scope="col">Végzés</th>
+                    <th scope="col">Adatok</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if 1 == 2  %}
+                <tr>
+                    <td>asd</td>
+                    <td>asd</td>
+                    <td>asd</td>
+                    <td>asd</td>
+                </tr>
+                <tr>
+                    <td>asd</td>
+                    <td>asd</td>
+                    <td>asd</td>
+                    <td>asd</td>
+                </tr>
+                <tr>
+                    <td>asd</td>
+                    <td>asd</td>
+                    <td>asd</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">Nincs rögzítve munka a projekthez!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

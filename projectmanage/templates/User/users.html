@@ -1,14 +1,21 @@
 {% extends 'layout.html' %}
 
 {% block body %}
- <table class="table table-striped">
+
+{% if current_user.admin %}
+<a href="{{ url_for('register') }}" class="btn btn-outline-info">
+    <i class="fa fa-users"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Felhasználó felvitele
+</a>  
+<hr>
+{% endif %}
+<table class="table table-striped">
     <thead class="thead-dark">
         <tr>
-        <th scope="col">#</th>
-        <th scope="col">Név</th>
-        <th scope="col">Felhasználó név</th>
-        <th scope="col">E-mail cím</th>
-        <th scope="col">Üzenet</th>
+            <th scope="col">#</th>
+            <th scope="col">Név</th>
+            <th scope="col">Felhasználó név</th>
+            <th scope="col">E-mail cím</th>
+            <th scope="col">Üzenet</th>
         </tr>
     </thead>
     <tbody>

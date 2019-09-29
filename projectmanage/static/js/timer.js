@@ -1,6 +1,6 @@
 $(function() {
     // Alapértelmezett config / localstorage betöltés a clockhoz   
-    
+ 
     if (localStorage.getItem('active') !== null) {
         if (localStorage.getItem('active') == 1) {
             setActive = true;            
