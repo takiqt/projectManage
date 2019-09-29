@@ -22,31 +22,31 @@ $(function() {
     }
 
     if (localStorage.getItem('startTime') !== null) {
-        setStartTime = localStorage.getItem('startTime');
+        setStartTime = parseInt(localStorage.getItem('startTime'));
     } else {
         setStartTime = 1500;
     }
 
     if (localStorage.getItem('currentTime') !== null) {
-        setCurrentTime = localStorage.getItem('currentTime');
+        setCurrentTime = parseInt(localStorage.getItem('currentTime'));
     } else {
         setCurrentTime = 1500;
     }
 
     if (localStorage.getItem('sessionTime') !== null) {
-        setSessionTime = localStorage.getItem('sessionTime');
+        setSessionTime = parseInt(localStorage.getItem('sessionTime'));
     } else {
         setSessionTime = 1500;
     }
 
     if (localStorage.getItem('breakTime') !== null) {
-        setBreakTime = localStorage.getItem('breakTime');
+        setBreakTime = parseInt(localStorage.getItem('breakTime'));
     } else {
         setBreakTime = 300;
     }    
     
     if (localStorage.getItem('sessionCount') !== null) {
-        setSessionCount = localStorage.getItem('sessionCount');
+        setSessionCount = parseInt(localStorage.getItem('sessionCount'));
     } else {
         setSessionCount = 0;
     }

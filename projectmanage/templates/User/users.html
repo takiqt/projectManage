@@ -8,25 +8,31 @@
         <th scope="col">Név</th>
         <th scope="col">Felhasználó név</th>
         <th scope="col">E-mail cím</th>
+        <th scope="col">Üzenet</th>
         </tr>
     </thead>
     <tbody>
         {% for user in users %}
         <tr>
-        <td>
-            {{ user.id }}
-        </td>
-        <td>
-            {{ user.fullName }}        
-        </td>
-        </td>
-        <td>
-            {{ user.userName }}        
-        </td>
-        </td>
-        <td>
-            {{ user.email}}        
-        </td>
+            <td>
+                {{ user.id }}
+            </td>
+            <td>
+                {{ user.fullName }}        
+            </td>
+            </td>
+            <td>
+                {{ user.userName }}      
+            </td>
+            </td>
+            <td>
+                {{ user.email}}        
+            </td>
+            <td>
+                {% if user != current_user %}
+                <p>Küldés</p>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

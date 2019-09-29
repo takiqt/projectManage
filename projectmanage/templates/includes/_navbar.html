@@ -3,39 +3,47 @@
     <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse navbar-container" id="navbarSupportedContent">
         {% if current_user.is_authenticated %}     
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/home"><i class="fa fa-home"></i> Főoldal</a>
+            <ul class="navbar-nav mr-auto active-ul">
+                <li class="nav-link {% if activeLink == 'home' %} active-link {% endif %}">
+                    <a href="/home"><i class="fa fa-dashboard"></i>&nbsp;Dashboard</a>
+                    <div class="underline"></div>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/users">Felhasználók</a>
+                <li class="nav-link {% if activeLink == 'users' %} active-link {% endif %}">
+                    <a href="/users"><i class="fa fa-user"></i>&nbsp;Felhasználók</a>
+                    <div class="underline"></div>
                 </li>           
-                <li class="nav-item">
-                    <a class="nav-link" href="/projects"><i class="fa fa-list"></i> Projektek</a>
+                <li class="nav-link {% if activeLink == 'projects' %} active-link {% endif %}">
+                    <a href="/projects"><i class="fa fa-list"></i>&nbsp;Projektek</a>
+                    <div class="underline"></div>
                 </li>           
-                <li class="nav-item">
-                    <a class="nav-link" href="/addProject">Projekt felvitele</a>
+                <li class="nav-link {% if activeLink == 'addProject' %} active-link {% endif %}" >
+                    <a href="/addProject">&nbsp;Projekt felvitele</a>
+                    <div class="underline"></div>
                 </li>           
                 </li>           
-                <li class="nav-item">
-                    <a class="nav-link" href="/test1">Test - Amchart Gant</a>
+                <li class="nav-link">
+                    <a href="/test1">Test - Amchart Gant</a>
+                    <div class="underline"></div>
                 </li>           
             </ul>
         {% endif %}
         
-        <ul class="navbar-nav ml-auto">       
+        <ul class="navbar-nav ml-auto active-ul-l">       
             {% if current_user.is_authenticated %}     
-                <li class="nav-item">
-                    <a class="nav-link"><i class="fa fa-user"></i> {{ current_user.fullName }}</a>
+                <li class="nav-link {% if activeLink == 'userData' %} active-link {% endif %}">
+                    <a href="#"><i class="fa fa-user"></i>&nbsp;{{ current_user.fullName }}</a>
+                    <div class="underline"></div>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout"><i class="fa fa-sign-out"></i> Kilépés</a>
+                <li class="nav-link">
+                    <a href="/logout"><i class="fa fa-sign-out"></i>&nbsp;Kilépés</a>
+                    <div class="underline"></div>
                 </li>
             {% else %}                     
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Bejelentkezés</a>
+                <li class="nav-link">
+                    <a href="/login"><i class="fa fa-sign-in"></i>&nbsp;Bejelentkezés</a>
+                    <div class="underline"></div>
                 </li>
             {% endif %}        
         </ul>

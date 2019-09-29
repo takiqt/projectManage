@@ -37,16 +37,115 @@ h1, h2, h3, h4, h5, h6 {
 
 .bg-dark {  
   margin-bottom: 20px;  
+} 
+
+a {
+	outline: none;
 }
 
-.site-header .navbar-nav .nav-link {
-  color: #cbd5db;
+.navbar-container {
+	text-align: center;	
 }
 
-.site-header .navbar-nav .nav-link:hover {
-  color: #ffffff;
+.navbar-container ul.navbar-nav.mr-auto.active-ul {
+	margin: 0;
+	padding: 0;
+	text-align: right;	
+	vertical-align: middle;
 }
 
-.site-header .navbar-nav .nav-link.active {
-  font-weight: 500;
+.navbar-container ul.navbar-nav.mr-auto.active-ul li {
+	display: inline-block;
+	font-size: 16px;
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li a {
+	color: #ffffff;
+	text-decoration: none;
+	display: inline-block;	
+	
+	transition: color 0.5s;
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li .underline {
+	height: 3px;
+	background-color: transparent;
+	width: 0%;
+	transition: width 0.2s, background-color 0.5s;
+	margin: 0 auto;
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li.active-link .underline {
+	width: 100%;
+	background-color: #00A0B0;
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li:hover .underline {
+	background-color: #00A0B0;
+	width: 100%;
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li:hover a {
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li:active a {
+	transition: none;
+	color: rgba(255,255,255,0.76);
+}
+
+.navbar-container ul.navbar-nav.mr-auto.active-ul li:active .underline {
+	transition: none;
+	background-color: rgba(255,255,255,0.76);
+}
+
+/*  */
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l {
+	margin: 0;
+	padding: 0;
+	text-align: right;	
+	vertical-align: middle;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li {
+	display: inline-block;
+	font-size: 16px;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li a {
+	color: #ffffff;
+	text-decoration: none;
+	display: inline-block;	
+	
+	transition: color 0.5s;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li .underline {
+	height: 3px;
+	background-color: transparent;
+	width: 0%;
+	transition: width 0.2s, background-color 0.5s;
+	margin: 0 auto;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li.active-link .underline {
+	width: 100%;
+	background-color: #eb6841;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li:hover .underline {
+	background-color: #eb6841;
+	width: 100%;
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li:hover a {
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li:active a {
+	transition: none;
+	color: rgba(255,255,255,0.76);
+}
+
+.navbar-container ul.navbar-nav.ml-auto.active-ul-l li:active .underline {
+	transition: none;
+	background-color: rgba(255,255,255,0.76);
 }

@@ -12,7 +12,7 @@ from projectmanage.forms import *
 @login_required
 def index():     
     app.logger.warning(current_user)
-    return render_template('home.html')
+    return render_template('home.html', activeLink='home')
 
 @loginManager.user_loader
 def load_user(userId):    
@@ -103,7 +103,8 @@ def logout():
 def users():
     users = User.query.order_by(User.fullName).all()
     data = {
-        'users' : users
+        'users' : users,
+        'activeLink' : 'users',
     }
     return render_template('User/users.html', **data)
 
@@ -112,7 +113,8 @@ def users():
 def projects():
     projects = Project.query.order_by(Project.name).all()
     data = {
-        'projects' : projects
+        'projects' : projects,
+        'activeLink' : 'projects',
     }
     return render_template('Project/projects.html', **data)
 
@@ -131,7 +133,8 @@ def addProject():
         return redirect(url_for('projects'))
     else:
         data = {
-            'form' : form                 
+            'form' : form,
+            'activeLink' : 'addProject',
         }
         return render_template('Project/addProject.html', **data)
 
@@ -140,7 +143,7 @@ def addProject():
 @login_required
 def projectData(projectId):
     project = Project.query.get_or_404(projectId)
-    return render_template('Project/projectData.html', project=project, menuTitle='adatlap')
+    return render_template('Project/projectData.html', project=project, menuTitle='adatlap', activeLink='projects')
     
 
 @app.route("/projectLeaders/<int:projectId>", methods=['POST', 'GET'])
@@ -156,15 +159,14 @@ def projectLeaders(projectId):
         project.leaders.append(user)
         db.session.commit()    
         
-
-    return render_template('Project/projectUsers.html', project=project, menuTitle='vezetők', form=form)
+    return render_template('Project/projectUsers.html', project=project, menuTitle='vezetők', form=form, activeLink='projects')
 
 
 @app.route("/projectWorkers/<int:projectId>", methods=['POST', 'GET'])
 @login_required
 def projectWorkers(projectId):
     project = Project.query.get_or_404(projectId)
-    return render_template('Project/projectUsers.html', project=project, menuTitle='munkatársak')
+    return render_template('Project/projectUsers.html', project=project, menuTitle='munkatársak', activeLink='projects')
 
 
 
