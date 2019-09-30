@@ -174,6 +174,9 @@ def addProject():
 @login_required
 def projectData(projectId):
     project = Project.query.get_or_404(projectId)
+    if current_user in project.leaders or project.creator == current_user:
+        app.logger.info('Benne van')
+
     return render_template('Project/projectData.html', project=project, menuTitle='adatlap', activeLink='projects')
     
 # Vezető lista aloldal
@@ -251,6 +254,13 @@ def deleteProjectWorker(projectId):
             flash(f'Munkatárs törölve!', 'success')
         
     return redirect(url_for('projectWorkers', projectId=project.id))
+
+# Projekt munka felvitele
+@app.route('/addProjectJob/<int:projectId>', methods=['POST', 'GET'])
+@login_required
+def addProjectJob(projectId):
+    app.logger.info(projectId)
+    return redirect(url_for('projectData', projectId=projectId))
 
 ## Test chartok
 @app.route('/test1')

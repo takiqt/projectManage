@@ -104,6 +104,11 @@
                 Projekt munkái
             </h2>
             <hr>
+            {% if current_user in project.leaders or project.creator == current_user %}
+                <a href="{{ url_for('addProjectJob',  projectId=project.id) }}" class="btn btn-outline-info">
+                    <i class="fa fa-tasks"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Munka felvitele
+                </a> 
+            {% endif %}
         </fieldset>
         <table class="table table-striped">
             <thead class="thead-dark">
