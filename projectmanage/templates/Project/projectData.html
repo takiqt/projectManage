@@ -120,24 +120,17 @@
                 </tr>
             </thead>
             <tbody>
-                {% if 1 == 2  %}
-                <tr>
-                    <td>asd</td>
-                    <td>asd</td>
-                    <td>asd</td>
-                    <td>asd</td>
-                </tr>
-                <tr>
-                    <td>asd</td>
-                    <td>asd</td>
-                    <td>asd</td>
-                    <td>asd</td>
-                </tr>
-                <tr>
-                    <td>asd</td>
-                    <td>asd</td>
-                    <td>asd</td>
-                </tr>
+                {% if project.projectJobs %}
+                    {% for projectJob in project.projectJobs %}
+                        <tr>
+                            <td>{{ projectJob.name }}</td>
+                            <td>{{ projectJob.dateStart }}</td>
+                            <td>{{ projectJob.dateEnd }}</td>
+                            <td>
+                                x
+                            </td>
+                        </tr>
+                    {% endfor %}
                 {% else %}
                 <tr>
                     <td colspan="4">Nincs rögzítve munka a projekthez!</td>

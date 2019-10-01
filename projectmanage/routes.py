@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse, urljoin
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
-from projectmanage.models import User, Project
+from projectmanage.models import User, Project, ProjectJob
 from projectmanage.forms import *
 
 # Kezdőlap / Dashboard
@@ -174,6 +174,7 @@ def addProject():
 @login_required
 def projectData(projectId):
     project = Project.query.get_or_404(projectId)
+    app.logger.info(project.projectJobs)
     if current_user in project.leaders or project.creator == current_user:
         app.logger.info('Benne van')
 
@@ -259,8 +260,32 @@ def deleteProjectWorker(projectId):
 @app.route('/addProjectJob/<int:projectId>', methods=['POST', 'GET'])
 @login_required
 def addProjectJob(projectId):
-    app.logger.info(projectId)
-    return redirect(url_for('projectData', projectId=projectId))
+    form = AddProjectJobForm()
+    form.users.query = User.query.order_by(User.fullName).all()
+    app.logger.info(form.dateStart.data)
+    if form.validate_on_submit():
+        projectJobData = {
+            'name' : form.name.data,
+            'description' : form.description.data,
+            'estimatedTime' : form.estimatedTime.data,
+            'dateStart' : form.dateStart.data,
+            'dateEnd' : form.dateEnd.data,
+            'creatorUserId' : current_user.id,
+            'workerUserId' : form.users.data.id,
+            'projectId' : projectId,
+        }
+        projectJob = ProjectJob(**projectJobData)
+        db.session.add(projectJob)
+        db.session.commit()
+        flash(f'Sikeres munka felvitel!', 'success')
+        return redirect(url_for('projectData', projectId=projectId))
+    else:
+        data = {
+            'form' : form,
+            'activeLink' : 'projects',
+            'projectId' : projectId,
+        }
+        return render_template('ProjectJob/addProjectJob.html', **data)
 
 ## Test chartok
 @app.route('/test1')

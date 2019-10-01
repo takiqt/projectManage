@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="content-section">
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="projectId" value="{{ projectId }}">
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">
+                Projekt Munka felvitel
+            </legend>
+            <div class="form-group">
+                    {{ form.name.label(class="form-control-label") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div> 
+                <div class="form-group">
+                    {{ form.description.label(class="form-control-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                    <br>
+                        {{ form.description(class="form-control-lg", rows='20', cols='70') }}
+                    {% endif %}
+                </div>                      
+                <div class="form-group">
+                    {{ form.dateStart.label(class="form-control-label") }}
+                    {% if form.dateStart.errors %}
+                        {{ form.dateStart(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.dateStart.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.dateStart(class="form-control-lg datepicker", type="date" ) }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.dateEnd.label(class="form-control-label") }}
+                    {% if form.dateEnd.errors %}
+                    {{ form.dateEnd(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.dateEnd.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.dateEnd(class="form-control-lg datepicker", type="date") }}
+                    {% endif %}
+                </div>   
+                <div class="form-group">
+                    {{ form.estimatedTime.label(class="form-control-label") }}
+                    {% if form.estimatedTime.errors %}
+                        {{ form.estimatedTime(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.estimatedTime.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.estimatedTime(class="form-control form-control-lg") }}
+                    {% endif %}                                               
+                </div>   
+                <div class="form-group">
+                    {{ form.users.label(class="form-control-label") }}
+                    {% if form.users.errors %}
+                        {{ form.users(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.users.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.users(class="form-control") }}    
+                    {% endif %}
+                </div>                                  
+            <div class="form-group">
+                {{ form.save(class="btn btn-outline-info") }}
+            </div>
+            <a href="{{ url_for('projectData', projectId=projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>    
+        </fieldset>
+    </form>
+</div>
+{% endblock body %}
