@@ -79,7 +79,6 @@ class ProjectJobWorktimeHistory(db.Model):
     def __repr__(self):
         return f'Munkaidő - #{self.projectJobId} - Idő: {self.workTime} óra'
 
-
 class UserMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fromUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

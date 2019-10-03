@@ -12,9 +12,9 @@
     <thead class="thead-dark">
         <tr>
             <th scope="col">#</th>
-            <th scope="col">Név</th>
-            <th scope="col">Felhasználó név</th>
+            <th scope="col">Név</th>            
             <th scope="col">E-mail cím</th>
+            <th scope="col">Adatok</th>
             <th scope="col">Üzenet</th>
         </tr>
     </thead>
@@ -26,18 +26,16 @@
             </td>
             <td>
                 {{ user.fullName }}        
-            </td>
-            </td>
-            <td>
-                {{ user.userName }}      
-            </td>
-            </td>
+            </td>            
             <td>
                 {{ user.email}}        
             </td>
             <td>
+                <a href="{{ url_for('userData', userId=user.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
+            </td>
+            <td>
                 {% if user != current_user %}
-                <p>Küldés</p>
+                    <a href="{{ url_for('sendMessage', targetUserId=user.id) }}" class="btn btn-outline-success"><i class="fa fa-envelope"></i>&nbsp;Küldés</a>
                 {% endif %}
             </td>
         </tr>

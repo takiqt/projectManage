@@ -35,9 +35,9 @@
                 <hr> 
                 <div class="row">   
                     <div class="col-4 font-weight-bold">
-                        Vezetők&emsp;
-                        {% if current_user == project.creator %}
-                            <a href="{{ url_for('projectLeaders', projectId=project.id) }}" class="btn btn-outline-info float-right">Kezelés</a>
+                        Vezetők
+                        {% if current_user == project.creator %}                                                  
+                            <a href="{{ url_for('projectLeaders', projectId=project.id) }}" class="btn btn-outline-info float-right"><i class="fa fa-cog"></i>&nbsp;Kezelés</a>
                         {% endif %}
                     </div>                
                     <div class="col-8">
@@ -58,9 +58,9 @@
                 <hr>
                 <div class="row">   
                     <div class="col-4 font-weight-bold">
-                        Munkatársak&emsp;
-                        {% if current_user == project.creator %}
-                            <a href="{{ url_for('projectWorkers', projectId=project.id) }}" class="btn btn-outline-info float-right">Kezelés</a>
+                        Munkatársak
+                        {% if current_user == project.creator %}                        
+                            <a href="{{ url_for('projectWorkers', projectId=project.id) }}" class="btn btn-outline-info float-right"><i class="fa fa-cog"></i>&nbsp;Kezelés</a>
                         {% endif %}
                     </div>                
                     <div class="col-8">
@@ -127,7 +127,7 @@
                             <td>{{ projectJob.dateStart }}</td>
                             <td>{{ projectJob.dateEnd }}</td>
                             <td>
-                                <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info">Adatok</a>
+                                <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
                             </td>
                         </tr>
                     {% endfor %}

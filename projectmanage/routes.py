@@ -152,6 +152,13 @@ def users():
     }
     return render_template('User/users.html', **data)
 
+# Felhasználó adatlap megtekintése
+@app.route('/userData/<int:userId>')
+@login_required
+def userData(userId):
+    app.logger.info(userId)
+    return redirect(url_for('users'))
+
 # Projekt lista oldal
 @app.route("/projects")
 @login_required
@@ -360,6 +367,15 @@ def manageJob(projectJobId):
         flash(f'Hibás munkaidő adatok!', 'danger')
 
     return redirect(url_for('index'))
+
+
+# Üzenet küldés
+@app.route('/sendMessage/<int:targetUserId>', methods=['POST', 'GET'])
+@login_required
+def sendMessage(targetUserId):
+    app.logger.info(targetUserId)
+    return redirect(url_for('users'))
+
 
 ##############################
 ## Test chartok
