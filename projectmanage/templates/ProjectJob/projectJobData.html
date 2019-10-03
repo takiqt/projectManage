@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block body %}  
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Projekt munka adatlap
+            </h2>
+            <h3>
+                {{ projectJob.name }}
+            </h3>
+            <small>
+                Projekt: {{ project.name }}
+            </small>
+            <hr>
+            <div class="container">        
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Leírás
+                    </div>                    
+                    <div class="col-8">
+                        {{ projectJob.description }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Kezdés
+                    </div>                    
+                    <div class="col-8">
+                        {{ projectJob.dateStart.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Végzés
+                    </div>                
+                    <div class="col-8">
+                        {{ projectJob.dateEnd.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>                    
+            </div>
+        </fieldset>
+        <a href="{{ url_for('projectData', projectId=projectJob.projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     
+    </div>
+{% endblock body %}

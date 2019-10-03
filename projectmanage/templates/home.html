@@ -3,10 +3,15 @@
 {% block body %}
 <div class="jumbotron">
     
+
+
+
     <b>Feladatok</b>
 
     <p>
-        Várakozó
+        {% for projectJob in current_user.projectJobsWork %}
+            {{ projectJob.name }} <br />
+        {% endfor %}
     </p>
     <p>
         Folyamatban

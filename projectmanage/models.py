@@ -21,14 +21,17 @@ class User(UserMixin, db.Model):
     email    = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
     admin    = db.Column(db.Boolean, default=False)
+    deleted  = db.Column(db.Boolean, nullable=False, default=False)
+    delTime = db.Column(db.DateTime, nullable=True)
     projects = db.relationship('Project', backref='creator', lazy=True)    
     projectWorkers = db.relationship('Project', secondary=projectWorkers, backref=db.backref('workers', lazy='dynamic'))
     projectLeaders = db.relationship('Project', secondary=projectLeaders, backref=db.backref('leaders', lazy='dynamic'))
     projectJobsCreated = db.relationship('ProjectJob', foreign_keys='ProjectJob.creatorUserId', backref='creator', lazy=True)
     projectJobsWork    = db.relationship('ProjectJob', foreign_keys='ProjectJob.workerUserId', backref='worker', lazy=True)   
+    activeJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False, default=0)
 
     def __repr__(self):
-        return f"'{self.fullName}'" 
+        return f"Felhasználó: #{self.id} - {self.fullName}" 
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,10 +42,12 @@ class Project(db.Model):
     creatorUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     projectJobs = db.relationship('ProjectJob', backref='project', lazy=True)
-
+    isDone = db.Column(db.Boolean, nullable=False, default=False)
+    doneTime = db.Column(db.DateTime, nullable=True)
+    deleted  = db.Column(db.Boolean, nullable=False, default=False)
+    delTime = db.Column(db.DateTime, nullable=True)
     def __repr__(self):
-        return f"Project('{self.id} - {self.name}')"
-
+        return f"Project: #{self.id} - {self.name}" 
 
 class ProjectJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -58,6 +63,24 @@ class ProjectJob(db.Model):
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     isDone = db.Column(db.Boolean, nullable=False, default=False)
     doneTime = db.Column(db.DateTime, nullable=True)
-
+    deleted  = db.Column(db.Boolean, nullable=False, default=False)
+    delTime = db.Column(db.DateTime, nullable=True)
     def __repr__(self):
-        return f'Projekt munka: {self.name} ({self.id}) - projekt: {self.projectId}'
+        return f'Projekt munka: {self.name} (#{self.id}) - projekt: #{self.projectId}'
+
+# class ProjectJobWorktimeHistory(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     projectJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
+#     workTime = db.Column(db.Float, nullable=False)
+#     def __repr__(self):
+#         return f'Munkaidő: user - #{self.userId}, projectJob - #{self.projectJobId}'
+
+
+class UserMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    fromUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    toUserId   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(50), unique=True, nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    sentTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    readTime = db.Column(db.DateTime, nullable=True)

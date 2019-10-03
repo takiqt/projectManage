@@ -6,12 +6,6 @@ from projectmanage import app, db, bcrypt, loginManager
 from projectmanage.models import User, Project, ProjectJob
 from projectmanage.forms import *
 
-# Kezdőlap / Dashboard
-@app.route('/')
-@app.route('/home')
-@login_required
-def index():     
-    return render_template('home.html', activeLink='home')
 
 # Felhasználó beléptetés segédfunkció
 @loginManager.user_loader
@@ -37,6 +31,13 @@ def isAdmin(userId):
 @app.errorhandler(404)
 def page_not_found(e):
     return redirect(url_for('login'))
+
+# Kezdőlap / Dashboard
+@app.route('/')
+@app.route('/home')
+@login_required
+def index():   
+    return render_template('home.html', activeLink='home')
 
 # Felhasználó felvitele
 @app.route("/register", methods=['GET', 'POST'])
@@ -174,10 +175,6 @@ def addProject():
 @login_required
 def projectData(projectId):
     project = Project.query.get_or_404(projectId)
-    app.logger.info(project.projectJobs)
-    if current_user in project.leaders or project.creator == current_user:
-        app.logger.info('Benne van')
-
     return render_template('Project/projectData.html', project=project, menuTitle='adatlap', activeLink='projects')
     
 # Vezető lista aloldal
@@ -226,7 +223,7 @@ def projectWorkers(projectId):
 
     return render_template('Project/projectUsers.html', project=project, mode='workers',  menuTitle='munkatársak', form=form, activeLink='projects')
 
-# Vezető törlése
+# Vezető törlése a projektből
 @app.route('/projectLeaders/<int:projectId>/delete', methods=['POST'])
 @login_required
 def deleteProjectLeader(projectId):
@@ -241,7 +238,7 @@ def deleteProjectLeader(projectId):
         
     return redirect(url_for('projectLeaders', projectId=project.id))
 
-# Munkatárs törlése
+# Munkatárs törlése a projektből
 @app.route('/projectWorkers/<int:projectId>/delete', methods=['POST'])
 @login_required
 def deleteProjectWorker(projectId):
@@ -287,6 +284,15 @@ def addProjectJob(projectId):
         }
         return render_template('ProjectJob/addProjectJob.html', **data)
 
+# Projekt munka adatlap
+@app.route('/projectJobData/<int:projectJobId>')
+@login_required
+def projectJobData(projectJobId):
+    projectJob = ProjectJob.query.get_or_404(projectJobId)
+    project = Project.query.get_or_404(projectJob.projectId)
+    return render_template('ProjectJob/projectJobData.html', projectJob=projectJob, project=project, activeLink='projects')
+
+##############################
 ## Test chartok
 @app.route('/test1')
 @login_required

@@ -127,7 +127,7 @@
                             <td>{{ projectJob.dateStart }}</td>
                             <td>{{ projectJob.dateEnd }}</td>
                             <td>
-                                x
+                                <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info">Adatok</a>
                             </td>
                         </tr>
                     {% endfor %}
