@@ -23,6 +23,10 @@ body {
 /* Sticky footer styles
 -------------------------------------------------- */
 
+.textarea-big {
+	min-height: 250px;
+}
+
 .content-section {
   background: #ffffff;
   padding: 10px 20px;

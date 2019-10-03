@@ -1,11 +1,12 @@
-from flask import render_template, url_for, request, session, redirect, flash
+from flask import render_template, url_for, request, session, redirect, flash, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse, urljoin
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
-from projectmanage.models import User, Project, ProjectJob
+from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
 from projectmanage.forms import *
-
+from datetime import datetime
+import pprint
 
 # Felhasználó beléptetés segédfunkció
 @loginManager.user_loader
@@ -61,6 +62,7 @@ def index():
         'activeJob' : activeJob,
         'pendingJobs' : pendingJobs,
         'doneJobs' : doneJobs,
+        'form' : AddProjectWorkTimeForm(),
     }
 
     return render_template('home.html', **data)
@@ -321,12 +323,43 @@ def projectJobData(projectJobId):
 # Projekt munka levétele
 @app.route('/startJob/<int:projectJobId>')
 @login_required
-def startJob(projectJobId):
-    app.logger.info(f'levette: #{projectJobId}')
+def startJob(projectJobId):    
     current_user.activeJobId = projectJobId
     db.session.commit()
     return redirect(url_for('index'))
 
+# Projekt munka állapot változatás
+@app.route('/manageJob/<int:projectJobId>', methods=['POST'])
+@login_required
+def manageJob(projectJobId):
+    comment = request.form.get('comment')
+    workTimeString = request.form.get('workTime')
+    workTime = float(workTimeString.replace(',', '.'))
+    done = request.form.get('done')
+    pending = request.form.get('pending')
+
+    if comment.strip() != '' and workTime > 0:
+        workTimeHistoryData = {
+            'comment' : comment,
+            'workTime' : workTime,
+            'projectJobId' : projectJobId,
+        }
+        projectJobWorktimeHistory = ProjectJobWorktimeHistory(**workTimeHistoryData)
+        db.session.add(projectJobWorktimeHistory)
+        current_user.activeJobId = 0
+        if done is not None:
+            projectJob = ProjectJob.query.get_or_404(projectJobId)
+            projectJob.isDone = True
+            projectJob.doneTime = datetime.now()
+            flash(f'Feladat elkészült!', 'success')
+        elif pending is not None:
+            flash(f'Feladat várakozó állapotra állítva!', 'success')
+        
+        db.session.commit()
+    else: 
+        flash(f'Hibás munkaidő adatok!', 'danger')
+
+    return redirect(url_for('index'))
 
 ##############################
 ## Test chartok

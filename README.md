@@ -33,6 +33,7 @@ MSc Diplomamunka
 
 + pip install -r requirements.txt
 + python -m pip install -r requirements.txt
++ pip install flask-login
 
 
 ### Adatbázis migráció

@@ -65,7 +65,7 @@ class ProjectJob(db.Model):
     doneTime = db.Column(db.DateTime, nullable=True)
     deleted  = db.Column(db.Boolean, nullable=False, default=False)
     delTime = db.Column(db.DateTime, nullable=True)
-    
+
     def __repr__(self):
         return f'Projekt munka: {self.name} (#{self.id}) - projekt: #{self.projectId}'
 
@@ -74,9 +74,10 @@ class ProjectJobWorktimeHistory(db.Model):
     projectJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
     workTime = db.Column(db.Float, nullable=False)
     comment  = db.Column(db.Text, nullable=False)
+    createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     def __repr__(self):
-        return f'Munkaidő: user - #{self.userId}, projectJob - #{self.projectJobId}'
+        return f'Munkaidő - #{self.projectJobId} - Idő: {self.workTime} óra'
 
 
 class UserMessage(db.Model):

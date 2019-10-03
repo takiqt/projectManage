@@ -69,5 +69,9 @@ class AddProjectJobForm(FlaskForm):
     users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
     dateStart = DateField('Kezdő dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
     dateEnd = DateField('Végző dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
-    estimatedTime = FloatField('Becsült idő', validators=[DataRequired(message="Megadása kötelező!")])
+    estimatedTime = FloatField('Becsült idő', validators=[DataRequired(message="Megadása kötelező!")])    
     save = SubmitField('Felvitel')
+
+class AddProjectWorkTimeForm(FlaskForm):
+    workTime = FloatField('Munkaidő', validators=[DataRequired(message="Megadása kötelező!")])
+    comment = TextAreaField('Megjegyzés', validators=[DataRequired(message="Megadása kötelező!")])

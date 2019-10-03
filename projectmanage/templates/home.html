@@ -50,17 +50,25 @@
                         <h6 class="card-title">{{ activeJob.name }}</h6>
                         <p class="card-text">
                             {{ getProjectName(activeJob.projectId) }}
-                        </p>
-                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
-                            <i class="fa fa-folder"></i>
-                        </a>
-                        
-                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-warning" title="Várakozóra állítás">
-                            <i class="fa fa-arrow-left"></i>
-                        </a>
-                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-success" title="Elkészültre állítás">
-                            <i class="fa fa-check"></i>
-                        </a>
+                        </p>               
+                        <hr>
+                        <form action="{{ url_for('manageJob', projectJobId=activeJob.id) }}" method="POST">
+                            {{ form.hidden_tag() }}
+                            <div class="form-group">
+                                {{ form.workTime.label(class="form-control-label") }}
+                                {{ form.workTime(class="form-control", type="number", step="0.1", min="0.1") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.comment.label(class="form-control-label") }}
+                                {{ form.comment(class="form-control") }}
+                            </div>
+                            <hr>
+                            <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
+                                    <i class="fa fa-folder"></i>
+                                </a> 
+                            <button type="submit" name="pending" class="btn btn-outline-warning" title="Várakozóra állítás"><i class="fa fa-arrow-left"></i></button>                        
+                            <button type="submit" name="done"    class="btn btn-outline-success" title="Elkészültre állítás"><i class="fa fa-check"></i></button>                        
+                        </form>                                    
                     </div>
                 </div>
             {% endif %}

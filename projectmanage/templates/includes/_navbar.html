@@ -9,11 +9,7 @@
                 <li class="nav-link {% if activeLink == 'home' %} active-link {% endif %}">
                     <a href="/home"><i class="fa fa-dashboard"></i>&nbsp;Dashboard</a>
                     <div class="underline"></div>
-                </li>
-                <li class="nav-link {% if activeLink == 'users' %} active-link {% endif %}">
-                    <a href="/users"><i class="fa fa-user"></i>&nbsp;Felhasználók</a>
-                    <div class="underline"></div>
-                </li>           
+                </li>                        
                 <li class="nav-link {% if activeLink == 'projects' %} active-link {% endif %}">
                     <a href="/projects"><i class="fa fa-list"></i>&nbsp;Projektek</a>
                     <div class="underline"></div>
@@ -22,7 +18,10 @@
                     <a href="/addProject"><i class="fa fa-plus"></i>&nbsp;Projekt felvitele</a>
                     <div class="underline"></div>
                 </li>           
-                </li>           
+                <li class="nav-link {% if activeLink == 'users' %} active-link {% endif %}">
+                    <a href="/users"><i class="fa fa-user"></i>&nbsp;Felhasználók</a>
+                    <div class="underline"></div>
+                </li>            
                 <li class="nav-link">
                     <a href="/test1">Test - Amchart Gant</a>
                     <div class="underline"></div>
