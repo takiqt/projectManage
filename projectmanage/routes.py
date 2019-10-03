@@ -32,12 +32,38 @@ def isAdmin(userId):
 def page_not_found(e):
     return redirect(url_for('login'))
 
+# Template helper funkciók
+@app.context_processor
+def my_utility_processor():
+    def getProjectName(projectId):
+        project = Project.query.get_or_404(projectId)
+        return project.name
+    return dict(getProjectName=getProjectName)
+
 # Kezdőlap / Dashboard
 @app.route('/')
 @app.route('/home')
 @login_required
-def index():   
-    return render_template('home.html', activeLink='home')
+def index():
+    doneJobs = []
+    activeJob = None
+    pendingJobs = []
+    for projectJob in current_user.projectJobsWork:
+        if projectJob.isDone:
+            doneJobs.append(projectJob)
+        elif projectJob.id == current_user.activeJobId:
+            activeJob = projectJob
+        else:
+            pendingJobs.append(projectJob)
+    
+    data = {
+        'activeLink' : 'home',
+        'activeJob' : activeJob,
+        'pendingJobs' : pendingJobs,
+        'doneJobs' : doneJobs,
+    }
+
+    return render_template('home.html', **data)
 
 # Felhasználó felvitele
 @app.route("/register", methods=['GET', 'POST'])
@@ -100,7 +126,7 @@ def login():
         return redirect(url_for('login'))
     else:
         if current_user.is_authenticated == True:
-            return render_template('home.html')
+            return redirect(url_for('index'))
         data = {
             'form' : form,             
         }
@@ -291,6 +317,16 @@ def projectJobData(projectJobId):
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     project = Project.query.get_or_404(projectJob.projectId)
     return render_template('ProjectJob/projectJobData.html', projectJob=projectJob, project=project, activeLink='projects')
+
+# Projekt munka levétele
+@app.route('/startJob/<int:projectJobId>')
+@login_required
+def startJob(projectJobId):
+    app.logger.info(f'levette: #{projectJobId}')
+    current_user.activeJobId = projectJobId
+    db.session.commit()
+    return redirect(url_for('index'))
+
 
 ##############################
 ## Test chartok

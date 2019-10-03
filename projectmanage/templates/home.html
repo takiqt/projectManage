@@ -1,25 +1,89 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-<div class="jumbotron">
-    
-
-
-
-    <b>Feladatok</b>
-
-    <p>
-        {% for projectJob in current_user.projectJobsWork %}
-            {{ projectJob.name }} <br />
-        {% endfor %}
-    </p>
-    <p>
-        Folyamatban
-    </p>
-    <p>
-        Elkészült
-    </p>
-
-  
+<div class="container">
+    <div class="row">
+        <div class="col-4 font-weight-bold">
+            Várakozó                
+        </div>
+        <div class="col-4 font-weight-bold">
+            Folyamatban
+        </div>
+        <div class="col-4 font-weight-bold">
+            Elkészült
+        </div>
+    </div>
+</div>
+<hr>
+<div class="container">
+    <div class="row">
+        <!-- Pending -->
+        <div class="col-4">
+            {% for projectJob in pendingJobs %}
+            <div class="card border-warning mb-3" style="width: 12rem;">
+                <div class="card-body">
+                  <h6 class="card-title">{{ projectJob.name }}</h6>
+                  <p class="card-text">
+                      {{ getProjectName(projectJob.projectId) }}
+                  </p>
+                  <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
+                      <i class="fa fa-folder"></i>
+                  </a>
+                  {% if activeJob %}                    
+                    <a class="btn btn-danger" title="Nem vehető le, van aktív feladat!">
+                        &nbsp;<i class="fa fa-exclamation"></i>&nbsp;
+                    </a>
+                  {% else %}
+                    <a href="{{ url_for('startJob', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Feladat levétele">
+                        <i class="fa fa-arrow-down"></i>&nbsp;Levesz
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+        </div>
+        <!-- Active -->
+        <div class="col-4">
+            {% if activeJob %}
+                <div class="card border-info mb-3" style="width: 12rem;">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ activeJob.name }}</h6>
+                        <p class="card-text">
+                            {{ getProjectName(activeJob.projectId) }}
+                        </p>
+                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
+                            <i class="fa fa-folder"></i>
+                        </a>
+                        
+                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-warning" title="Várakozóra állítás">
+                            <i class="fa fa-arrow-left"></i>
+                        </a>
+                        <a href="{{ url_for('projectJobData', projectJobId=activeJob.id) }}" class="btn btn-outline-success" title="Elkészültre állítás">
+                            <i class="fa fa-check"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Done -->
+        <div class="col-4">
+            {% for projectJob in doneJobs %}
+            <div class="card border-success mb-3" style="width: 12rem;">
+                <div class="card-body">
+                    <h6 class="card-title">{{ projectJob.name }}</h6>
+                    <p class="card-text">
+                        {{ getProjectName(projectJob.projectId) }}
+                    </p>
+                    <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
+                        <i class="fa fa-folder"></i>
+                    </a>
+                    <a class="btn btn-success" title="Elkészült">
+                        <i class="fa fa-check"></i>
+                    </a>     
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
