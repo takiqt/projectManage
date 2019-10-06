@@ -22,10 +22,14 @@
                     <a href="/users"><i class="fa fa-user"></i>&nbsp;Felhasználók</a>
                     <div class="underline"></div>
                 </li>            
+                <li class="nav-link {% if activeLink == 'messages' %} active-link {% endif %}">
+                    <a href="/messages"><i class="fa fa-envelope"></i>&nbsp;Üzenetek</a>
+                    <div class="underline"></div>
+                </li>            
                 <li class="nav-link">
                     <a href="/test1">Test - Amchart Gant</a>
                     <div class="underline"></div>
-                </li>           
+                </li>    
             </ul>
         {% endif %}
         

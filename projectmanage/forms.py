@@ -75,3 +75,12 @@ class AddProjectJobForm(FlaskForm):
 class AddProjectWorkTimeForm(FlaskForm):
     workTime = FloatField('Munkaidő', validators=[DataRequired(message="Megadása kötelező!")])
     comment = TextAreaField('Megjegyzés', validators=[DataRequired(message="Megadása kötelező!")])
+
+class SendMessageForm(FlaskForm):
+    toUserId = QuerySelectField('Címzett', allow_blank=False, get_label='fullName')
+    subject = StringField('Tárgy', validators=[
+        DataRequired(message="Megadása kötelező!"),
+        Length(min=5, max=50, message="Mező hosszának 5 és 50 karakter között kell lennie!")
+    ])
+    text = TextAreaField('Üzenet', validators=[DataRequired(message="Megadása kötelező!")])
+    send = SubmitField('Küldés')

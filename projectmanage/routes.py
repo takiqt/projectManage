@@ -372,11 +372,54 @@ def manageJob(projectJobId):
 # Üzenet küldés
 @app.route('/sendMessage/<int:targetUserId>', methods=['POST', 'GET'])
 @login_required
-def sendMessage(targetUserId):
-    app.logger.info(targetUserId)
-    return redirect(url_for('users'))
+def sendMessage(targetUserId):    
+    form = SendMessageForm()
+    form.toUserId.query = User.query.filter(User.id!=current_user.id).order_by(User.fullName).all()    
+    if form.validate_on_submit() and form.toUserId.data.id != current_user.id:
+        app.logger.info(form.text.data)
+        messageData = {
+            'text' : form.text.data,
+            'subject' : form.subject.data,
+            'fromUserId' : current_user.id,
+            'toUserId' : form.toUserId.data.id,
+        }
+        message = UserMessage(**messageData)
+        db.session.add(message)
+        db.session.commit()
+        flash(f'Üzenet elküldve!', 'success')
+        return redirect(url_for('users'))
+    else:
+        if not form.is_submitted():
+            form.toUserId.default = load_user(targetUserId)
+            form.process()
+        data = {
+            'form' : form,
+            'activeLink' : 'messages',
+        }
+        return render_template('User/sendMessage.html', **data)
 
 
+@app.route('/loadMessage/<int:messageId>')
+@login_required
+def loadMessage(messageId):
+    message = UserMessage.query.get_or_404(messageId)
+    app.logger.info(message.text)
+    # return redirect(url_for('users'))
+    return render_template('User/messages.html')
+
+@app.route('/messages')
+@login_required
+def messages():
+    messages = UserMessage.query.filter(
+        or_(
+            UserMessage.toUserId == current_user.id, 
+            UserMessage.fromUserId == current_user.id)
+        ).order_by(UserMessage.sentTime)
+    for message in messages:        
+        message.text = message.text.replace('\n', '<br />')
+
+    return render_template('User/messages.html', messages=messages)
+    
 ##############################
 ## Test chartok
 @app.route('/test1')
