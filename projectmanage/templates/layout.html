@@ -98,6 +98,8 @@
     <script src="https://www.amcharts.com/lib/version/4.6.0/charts.js"></script>
     <script src="https://www.amcharts.com/lib/version/4.6.0/themes/material.js"></script>
     <!-- Timer -->
-    <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+    {% if current_user.is_authenticated %}
+      <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+    {% endif %}
 </body>
 </html>

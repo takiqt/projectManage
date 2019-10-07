@@ -1,6 +1,7 @@
 from projectmanage import db
 from flask_login import LoginManager, UserMixin
 from datetime import datetime
+from sqlalchemy import or_, and_, func
 
 projectWorkers = db.Table('projectWorkers',
     db.Column('userId', db.Integer, db.ForeignKey('user.id')),
@@ -69,7 +70,7 @@ class ProjectJob(db.Model):
     def __repr__(self):
         return f'Projekt munka: {self.name} (#{self.id}) - projekt: #{self.projectId}'
 
-class ProjectJobWorktimeHistory(db.Model):
+class ProjectJobWorktimeHistory(db.Model):   
     id = db.Column(db.Integer, primary_key=True)
     projectJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
     workTime = db.Column(db.Float, nullable=False)
@@ -87,3 +88,79 @@ class UserMessage(db.Model):
     text = db.Column(db.Text, nullable=False)
     sentTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     readTime = db.Column(db.DateTime, nullable=True)
+
+    @staticmethod
+    def getMessages(userId):
+        """[Felhasználó összes üzeneteinek lekérése]
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+        
+        Returns:
+            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+        """
+        messages = UserMessage.query.filter(
+        or_(
+            UserMessage.toUserId == userId, 
+            UserMessage.fromUserId == userId)
+        ).order_by(UserMessage.sentTime.desc())
+        return messages
+    
+    @staticmethod
+    def getSentMessages(userId):
+        """[Felhasználó kimenő üzeneteinek lekérése]
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+        
+        Returns:
+            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+        """
+        messages = UserMessage.query.filter(
+            UserMessage.fromUserId == userId
+        ).order_by(UserMessage.sentTime.desc())
+        return messages
+    
+    @staticmethod
+    def getRecievedMessages(userId):
+        """[Felhasználó beérkező üzeneteinek lekérése]
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+                    
+        Returns:
+            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+        """
+        messages = UserMessage.query.filter(
+            UserMessage.toUserId == userId
+        ).order_by(UserMessage.sentTime.desc())
+        return messages
+
+    @staticmethod
+    def getUnreadCount(userId):
+        """[Felhasználó beérkező olvasatlan üzenetszám]
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+                    
+        Returns:
+            [int] -- [Üzenetszám]
+        """
+        count = UserMessage.query.filter(
+            and_(
+                UserMessage.toUserId == userId,
+                UserMessage.readTime == None
+            )        
+        ).count()
+        return count
+
+    @staticmethod
+    def setRead(messageId):
+        """[Üzenet olvasottra állíása]
+        
+        Arguments:
+            messageId {[int]} -- [Üzenet azonosító]
+        """
+        message = UserMessage.query.get_or_404(messageId)
+        message.readTime = datetime.now()
+        db.session.commit()

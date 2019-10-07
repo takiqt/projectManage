@@ -39,7 +39,12 @@ def my_utility_processor():
     def getProjectName(projectId):
         project = Project.query.get_or_404(projectId)
         return project.name
-    return dict(getProjectName=getProjectName)
+    def getUserName(userId):
+        user = User.query.get_or_404(userId)
+        return user.fullName
+    def getUnreadCount(userId):
+        return UserMessage.getUnreadCount(userId)
+    return dict(getProjectName=getProjectName, getUserName=getUserName, getUnreadCount=getUnreadCount)
 
 # Kezdőlap / Dashboard
 @app.route('/')
@@ -370,13 +375,14 @@ def manageJob(projectJobId):
 
 
 # Üzenet küldés
-@app.route('/sendMessage/<int:targetUserId>', methods=['POST', 'GET'])
+@app.route('/sendMessage', defaults = { 'targetUserId' : 0, 'subject': None }, methods=['POST', 'GET'])
+@app.route('/sendMessage/<int:targetUserId>', defaults = { 'subject': None }, methods=['POST', 'GET'])
+@app.route('/sendMessage/<int:targetUserId>/<string:subject>', methods=['POST', 'GET'])
 @login_required
-def sendMessage(targetUserId):    
-    form = SendMessageForm()
+def sendMessage(targetUserId, subject):    
+    form = SendMessageForm()    
     form.toUserId.query = User.query.filter(User.id!=current_user.id).order_by(User.fullName).all()    
-    if form.validate_on_submit() and form.toUserId.data.id != current_user.id:
-        app.logger.info(form.text.data)
+    if form.validate_on_submit() and form.toUserId.data.id != current_user.id:       
         messageData = {
             'text' : form.text.data,
             'subject' : form.subject.data,
@@ -387,42 +393,40 @@ def sendMessage(targetUserId):
         db.session.add(message)
         db.session.commit()
         flash(f'Üzenet elküldve!', 'success')
-        return redirect(url_for('users'))
+        return redirect(url_for('sent'))
     else:
         if not form.is_submitted():
             form.toUserId.default = load_user(targetUserId)
+            if subject is not None:
+                form.subject.default = 'Re: ' + subject
             form.process()
         data = {
             'form' : form,
-            'activeLink' : 'messages',
+            'activeLink' : 'send',
         }
         return render_template('User/sendMessage.html', **data)
 
-
-@app.route('/loadMessage/<int:messageId>')
+@app.route('/loadMessage/<int:messageId>', defaults = { 'fromPage' : None })
+@app.route('/loadMessage/<int:messageId>/<string:fromPage>')
 @login_required
-def loadMessage(messageId):
+def loadMessage(messageId, fromPage):
     message = UserMessage.query.get_or_404(messageId)
-    app.logger.info(message.text)
-    # return redirect(url_for('users'))
-    return render_template('User/messages.html')
 
-@app.route('/messages')
-@login_required
-def messages():
-    messages = UserMessage.query.filter(
-        or_(
-            UserMessage.toUserId == current_user.id, 
-            UserMessage.fromUserId == current_user.id)
-        ).order_by(UserMessage.sentTime)
-    for message in messages:        
-        message.text = message.text.replace('\n', '<br />')
+    if message.readTime is None and message.toUserId == current_user.id:
+        UserMessage.setRead(messageId)
+        flash(f'Üzenet olvasottra állítva!', 'success')
 
-    return render_template('User/messages.html', messages=messages)
-    
-##############################
-## Test chartok
-@app.route('/test1')
-@login_required
-def test1():
-    return render_template('test1.html')
+    message.text = message.text.replace('\n', '<br />')
+  
+    return render_template('User/messageData.html', message=message, activeLink=fromPage)
+
+@app.route('/inbox')
+def inbox():
+    messages = UserMessage.getRecievedMessages(current_user.id) 
+    return render_template('User/inbox.html', messages=messages, activeLink='inbox')
+ 
+@app.route('/sent')
+def sent():    
+    messages = UserMessage.getSentMessages(current_user.id) 
+    return render_template('User/sent.html', messages=messages, activeLink='sent')
+ 

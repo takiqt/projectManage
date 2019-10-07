@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block body %}
+
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tárgy</th>
+            <th scope="col">Küldés ideje</th>
+            <th scope="col">Címzett</th>
+            <th scope="col">Olvasás ideje</th>
+            <th scope="col">Megnyitás</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>
+                {{ message.id }}
+            </td>
+            <td>
+                {{ message.subject|safe }}
+            </td>
+            <td>
+                {{ message.sentTime.strftime('%Y-%m-%d %H:%M') }}
+            </td>
+            <td> 
+                {{ getUserName(message.toUserId) }}
+            </td>
+            <td>
+                {% if message.readTime %}
+                {{ message.readTime.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    Olvasatlan
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('loadMessage', messageId=message.id, fromPage=activeLink) }}" class="btn btn-outline-success"><i class="fa fa-envelope"></i>&nbsp;Megnyitás</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "layout.html" %} 
+{% block body %}
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Üzenet
+            </h2>
+            <hr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Feladó
+                </div>                    
+                <div class="col-8">
+                    {{ getUserName(message.fromUserId) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Címzett
+                </div>                    
+                <div class="col-8">
+                    {{ getUserName(message.toUserId) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Küldés ideje
+                </div>                    
+                <div class="col-8">
+                    {{ message.sentTime.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Olvasás ideje
+                </div>                    
+                <div class="col-8">
+                    {% if message.readTime %}
+                    {{ message.readTime.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                        Olvasatlan
+                    {% endif %}
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Tárgy
+                </div>                    
+                <div class="col-8">
+                    {{ message.subject }}
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">
+                    Tartalom
+                </div>                    
+                <div class="col-8">
+                    {{ message.text|safe }}
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    {% if message.toUserId == current_user.id %}
+        <a href="{{ url_for('sendMessage', targetUserId=message.fromUserId, subject=message.subject) }}" class="btn btn-outline-info" title="Válasz">
+            <i class="fa fa-paper-plane">&nbsp;Válasz</i>
+        </a>
+    {% endif %}
+    <a href="{{ url_for(activeLink) }}" class="btn btn-outline-secondary" title="Vissza">
+            <i class="fa fa-reply">&nbsp;Vissza</i>
+        </a>
+{% endblock body %}

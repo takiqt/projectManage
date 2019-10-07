@@ -153,3 +153,17 @@ a {
 	transition: none;
 	background-color: rgba(255,255,255,0.76);
 }
+
+.button-badge {
+	background-color: #fa3e3e;
+	border-radius: 50px;	 
+	color: white;   
+	padding: 2px 4px;
+	font-size: 10px;	
+	position: absolute;	
+}
+
+.vl {
+	border-left: 2px solid #eb6841;
+	height: 20;
+}

@@ -21,24 +21,33 @@
                 <li class="nav-link {% if activeLink == 'users' %} active-link {% endif %}">
                     <a href="/users"><i class="fa fa-user"></i>&nbsp;Felhasználók</a>
                     <div class="underline"></div>
-                </li>            
-                <li class="nav-link {% if activeLink == 'messages' %} active-link {% endif %}">
-                    <a href="/messages"><i class="fa fa-envelope"></i>&nbsp;Üzenetek</a>
-                    <div class="underline"></div>
-                </li>            
-                <li class="nav-link">
-                    <a href="/test1">Test - Amchart Gant</a>
-                    <div class="underline"></div>
-                </li>    
+                </li> 
             </ul>
         {% endif %}
         
         <ul class="navbar-nav ml-auto active-ul-l">       
-            {% if current_user.is_authenticated %}     
-                <li class="nav-link {% if activeLink == 'userData' %} active-link {% endif %}">
-                    <a href="#"><i class="fa fa-user"></i>&nbsp;{{ current_user.fullName }}</a>
+            {% if current_user.is_authenticated %}
+                <li class="nav-link {% if activeLink == 'send' %} active-link {% endif %}">
+                    <a href="/sendMessage" title="Üzenet küldés"><i class="fa fa-comment"></i></a>
                     <div class="underline"></div>
                 </li>
+                <li class="nav-link {% if activeLink == 'inbox' %} active-link {% endif %}">
+                    <a href="/inbox" title="Bejövő üzenetek"></i><i class="fa fa-envelope"></i></a>
+                    {% if getUnreadCount(current_user.id) > 0 %}
+                        <span class="button-badge">{{ getUnreadCount(current_user.id) }}</span>
+                    {% endif %}
+                    <div class="underline"></div>
+                </li>                
+                <li class="nav-link {% if activeLink == 'sent' %} active-link {% endif %}">
+                    <a href="/sent" title="Elküldött üzenetek"><i class="fa fa-paper-plane"></i></a>
+                    <div class="underline"></div>
+                </li>               
+                <div class="vl"></div>     
+                <li class="nav-link {% if activeLink == 'userData' %} active-link {% endif %}">
+                    <a href="/userData"><i class="fa fa-user"></i>&nbsp;{{ current_user.fullName }}</a>
+                    <div class="underline"></div>
+                </li>
+                <div class="vl"></div>                
                 <li class="nav-link">
                     <a href="/logout"><i class="fa fa-sign-out"></i>&nbsp;Kilépés</a>
                     <div class="underline"></div>
