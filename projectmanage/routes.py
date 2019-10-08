@@ -1,173 +1,40 @@
 from flask import render_template, url_for, request, session, redirect, flash, Response
-from flask_login import login_user, logout_user, login_required, current_user
-from urllib.parse import urlparse, urljoin
+from flask_login import login_user, logout_user, login_required,  current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
 from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
 from projectmanage.forms import *
+from projectmanage.functions import *
 from datetime import datetime
 import pprint
 
-# Felhasználó beléptetés segédfunkció
-@loginManager.user_loader
-def load_user(userId):    
-    return User.query.get(int(userId))
-
-# Valós url vizsgálat
-def is_safe_url(urlTarget):
-    refUrl  = urlparse(request.host_url)
-    testUrl = urlparse(urljoin(request.host_url, urlTarget))
-    return testUrl.scheme in ('http', 'https') and \
-            refUrl.netloc == testUrl.netloc
-
-# Admin felhasználói jog lekérése
-def isAdmin(userId):
-    user = User.query.filter_by(admin=1, id=userId).first()
-    if user is not None:
-        return True
-    else:
-        return False
-
-# Error handler oldal
-@app.errorhandler(404)
-def page_not_found(e):
-    return redirect(url_for('login'))
-
-# Template helper funkciók
-@app.context_processor
-def my_utility_processor():
-    def getProjectName(projectId):
-        project = Project.query.get_or_404(projectId)
-        return project.name
-    def getUserName(userId):
-        user = User.query.get_or_404(userId)
-        return user.fullName
-    def getUnreadCount(userId):
-        return UserMessage.getUnreadCount(userId)
-    return dict(getProjectName=getProjectName, getUserName=getUserName, getUnreadCount=getUnreadCount)
-
-# Kezdőlap / Dashboard
 @app.route('/')
 @app.route('/home')
 @login_required
 def index():
-    doneJobs = []
-    activeJob = None
-    pendingJobs = []
-    for projectJob in current_user.projectJobsWork:
-        if projectJob.isDone:
-            doneJobs.append(projectJob)
-        elif projectJob.id == current_user.activeJobId:
-            activeJob = projectJob
-        else:
-            pendingJobs.append(projectJob)
+    """ Dashboard megjelenítése
     
+    Returns:
+        [response]
+    """
+    jobs = User.getProjectJobListCategories(current_user.id)
     data = {
         'activeLink' : 'home',
-        'activeJob' : activeJob,
-        'pendingJobs' : pendingJobs,
-        'doneJobs' : doneJobs,
+        'activeJob' : jobs['activeJob'],
+        'pendingJobs' : jobs['pendingJobs'],
+        'doneJobs' : jobs['doneJobs'],
         'form' : AddProjectWorkTimeForm(),
     }
-
     return render_template('home.html', **data)
 
-# Felhasználó felvitele
-@app.route("/register", methods=['GET', 'POST'])
-@login_required
-def register():
-    form = RegisterFrom()
-    if form.validate_on_submit():
-        oldUser = User.query.filter(or_(User.userName == form.userName.data, User.email == form.email.data)).first()
-        if oldUser is not None:
-            flash(f'Adott felhasználónév vagy email foglalt!', 'danger')
-            data = {
-                'form' : form,
-                'activeLink' : 'users',  
-            }              
-            return render_template('register.html', **data)
-        else:
-            hashedPassword = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-            userData = {
-                'userName' : form.userName.data,
-                'fullName' : form.fullName.data,
-                'password' : hashedPassword,
-                'email'    : form.email.data
-            }
-            user = User(**userData)
-            db.session.add(user)
-            db.session.commit()
-            flash(f'Felhasználó regisztrálva {form.userName.data}', 'success')        
-            return redirect(url_for('users'))
-    else:
-        if current_user.admin != True:
-            return render_template('home.html')
-        data = {
-            'form' : form,    
-            'activeLink' : 'users',
-        }
-        return render_template('register.html', **data)
-
-# Bejelentkezés
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        userName = form.userName.data
-        password = form.password.data
-        remember = True if request.form.get('remember') else False
-        
-        user = User.query.filter_by(userName=userName).first()
-
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user, remember=remember)
-
-            if 'next' in session:
-                next = session['next']
-                if is_safe_url(next):
-                    return redirect(next)
-
-            return redirect(url_for('index'))        
-        
-        flash(f'Hibás felhasználó név vagy jelszó!', 'success')
-        return redirect(url_for('login'))
-    else:
-        if current_user.is_authenticated == True:
-            return redirect(url_for('index'))
-        data = {
-            'form' : form,             
-        }
-        return render_template('login.html', **data)
-
-# Kijelentkezés
-@app.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-# Felhasználó lista oldal
-@app.route("/users")
-@login_required
-def users():
-    users = User.query.order_by(User.fullName).all()
-    data = {
-        'users' : users,
-        'activeLink' : 'users',
-    }
-    return render_template('User/users.html', **data)
-
-# Felhasználó adatlap megtekintése
-@app.route('/userData/<int:userId>')
-@login_required
-def userData(userId):
-    app.logger.info(userId)
-    return redirect(url_for('users'))
-
-# Projekt lista oldal
 @app.route("/projects")
 @login_required
 def projects():
+    """ Projekt lista
+    
+    Returns:
+        [response]
+    """
     projects = Project.query.order_by(Project.name).all()
     data = {
         'projects' : projects,
@@ -175,10 +42,14 @@ def projects():
     }
     return render_template('Project/projects.html', **data)
 
-# Projekt hozzáadása oldal
 @app.route("/addProject", methods=['GET', 'POST'])
 @login_required
 def addProject():
+    """ Projekt hozzáadása oldal
+    
+    Returns:
+        [response]
+    """
     form = AddProjectForm()
     if form.validate_on_submit():
         oldProject = Project.query.filter_by(name=form.name.data).first()
@@ -373,13 +244,205 @@ def manageJob(projectJobId):
 
     return redirect(url_for('index'))
 
+# 
+# Felhasználókra vonatkozó URL-k
+# 
 
-# Üzenet küldés
+@app.route("/register", methods=['GET', 'POST'])
+@login_required
+def register():
+    """ Felhasználó felvitele
+    
+    Returns:
+        [response]
+    """
+    form = RegisterFrom()
+    if form.validate_on_submit():
+        oldUser = User.query.filter(or_(User.userName == form.userName.data, User.email == form.email.data)).first()
+        if oldUser is not None:
+            flash(f'Adott felhasználónév vagy email foglalt!', 'danger')
+            data = {
+                'form' : form,
+                'activeLink' : 'users',  
+            }              
+            return render_template('register.html', **data)
+        else:
+            hashedPassword = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            userData = {
+                'userName' : form.userName.data,
+                'fullName' : form.fullName.data,
+                'password' : hashedPassword,
+                'email'    : form.email.data
+            }
+            user = User(**userData)
+            db.session.add(user)
+            db.session.commit()
+            flash(f'Felhasználó regisztrálva {form.userName.data}', 'success')        
+            return redirect(url_for('users'))
+    else:
+        if current_user.admin != True:
+            return render_template('home.html')
+        data = {
+            'form' : form,    
+            'activeLink' : 'users',
+        }
+        return render_template('register.html', **data)
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    """ Bejelentkezés 
+
+    Returns:
+        [response]
+    """
+    form = LoginForm()
+    if form.validate_on_submit():
+        userName = form.userName.data
+        password = form.password.data
+        remember = True if request.form.get('remember') else False
+        
+        user = User.query.filter_by(userName=userName).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user, remember=remember)
+
+            if 'next' in session:
+                next = session['next']
+                if is_safe_url(next):
+                    return redirect(next)
+
+            return redirect(url_for('index'))        
+        
+        flash(f'Hibás felhasználó név vagy jelszó!', 'success')
+        return redirect(url_for('login'))
+    else:
+        if current_user.is_authenticated == True:
+            return redirect(url_for('index'))
+        data = {
+            'form' : form,             
+        }
+        return render_template('login.html', **data)
+
+@app.route("/logout")
+@login_required
+def logout():
+    """ Kijelentkezés 
+    
+    Returns:
+        [response]
+    """
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route("/users")
+@login_required
+def users():
+    """ Felhasználó lista oldal
+    
+    Returns:
+        [response]
+    """
+    users = User.query.order_by(User.fullName).all()
+    data = {
+        'users' : users,
+        'activeLink' : 'users',
+    }
+    return render_template('User/users.html', **data)
+
+@app.route('/userData/<int:userId>')
+@login_required
+def userData(userId):
+    """ Felhasználó adatlap megtekintése
+    
+    Arguments:
+        userId {[int]} -- Felhasználó azonosító
+    
+    Returns:
+        [response]
+    """    
+    user = User.query.get_or_404(userId)    
+    jobs = User.getProjectJobListCategories(userId)
+    data = {
+        'user' : user,
+        'projectCount' : len(user.projects),
+        'pendingJobCount' : len(jobs['pendingJobs']),
+        'doneJobCount' : len(jobs['doneJobs']),
+        'activeLink' : 'users',
+    }
+    return render_template('User/userData.html', **data)
+
+@app.route('/account', methods=['POST', 'GET'])
+@login_required
+def account():
+    """ Adataim menüpont
+    
+    Returns:
+        [response]
+    """
+    form = ModifyAccountBaseDataForm()
+    user = User.query.get_or_404(current_user.id)
+    jobs = User.getProjectJobListCategories(current_user.id)
+    data = {
+        'user' : user,       
+        'projectCount' : len(user.projects),
+        'pendingJobCount' : len(jobs['pendingJobs']),
+        'doneJobCount' : len(jobs['doneJobs']),
+        'activeLink' : 'account',
+    }
+
+    if form.validate_on_submit():
+        email = form.email.data
+        userName =  form.userName.data
+        oldUser = User.query.filter(
+            or_(User.userName == userName, User.email == email), 
+            and_(User.id != current_user.id)
+        ).first()
+        if oldUser is None or oldUser.id == current_user.id:
+            user.userName = userName
+            user.email = email
+            db.session.commit()
+            flash(f'Sikeres módosítás', 'success')
+            return redirect(url_for('account'))
+        else:
+            flash(f'Adott felhasználónév vagy email foglalt!', 'danger')
+            data['form'] = form
+            return render_template('User/account.html', **data)
+    else:
+        if not form.is_submitted():
+            form.userName.default = user.userName
+            form.email.default = user.email
+            form.process()
+    
+        data['form'] = form
+        return render_template('User/account.html', **data)
+
+@app.route('/changePassword', methods=['POST', 'GET'])
+@login_required
+def changePassword():
+    """ Jelszó módosítás
+    
+    Returns:
+        [response]
+    """
+    data = {
+        'activeLink' : 'account',
+    }
+    return render_template('User/changePassword.html', **data)
+
 @app.route('/sendMessage', defaults = { 'targetUserId' : 0, 'subject': None }, methods=['POST', 'GET'])
 @app.route('/sendMessage/<int:targetUserId>', defaults = { 'subject': None }, methods=['POST', 'GET'])
 @app.route('/sendMessage/<int:targetUserId>/<string:subject>', methods=['POST', 'GET'])
 @login_required
-def sendMessage(targetUserId, subject):    
+def sendMessage(targetUserId, subject):
+    """ Üzenet küldés
+    
+    Arguments:
+        targetUserId {[int]} -- Címzett felhasználó azonosító
+        subject {[string]} -- Tárgy
+    
+    Returns:
+        [response]
+    """ 
     form = SendMessageForm()    
     form.toUserId.query = User.query.filter(User.id!=current_user.id).order_by(User.fullName).all()    
     if form.validate_on_submit() and form.toUserId.data.id != current_user.id:       
@@ -410,6 +473,15 @@ def sendMessage(targetUserId, subject):
 @app.route('/loadMessage/<int:messageId>/<string:fromPage>')
 @login_required
 def loadMessage(messageId, fromPage):
+    """ Üzenet betöltés
+    
+    Arguments:
+        messageId {[int]} -- Üzenet azonosító
+        fromPage {[string]} -- Inbox / Outbox -ból nyitottuk meg
+    
+    Returns:
+        [response]
+    """
     message = UserMessage.query.get_or_404(messageId)
 
     if message.readTime is None and message.toUserId == current_user.id:
@@ -417,16 +489,24 @@ def loadMessage(messageId, fromPage):
         flash(f'Üzenet olvasottra állítva!', 'success')
 
     message.text = message.text.replace('\n', '<br />')
-  
     return render_template('User/messageData.html', message=message, activeLink=fromPage)
 
 @app.route('/inbox')
 def inbox():
+    """ Bejővő Üzenetek
+    
+    Returns:
+        [response]
+    """
     messages = UserMessage.getRecievedMessages(current_user.id) 
     return render_template('User/inbox.html', messages=messages, activeLink='inbox')
- 
+
 @app.route('/sent')
 def sent():    
+    """ Kimenő Üzenetek
+    
+    Returns:
+        [response]
+    """
     messages = UserMessage.getSentMessages(current_user.id) 
     return render_template('User/sent.html', messages=messages, activeLink='sent')
- 

@@ -1,0 +1,78 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Felhasználó adatlapja: {{ user.fullName }}
+            </h2>
+            <hr>
+            <div class="container">
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Név
+                    </div>                    
+                    <div class="col-8">
+                        {{ user.fullName }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        E-mail cím
+                    </div>                    
+                    <div class="col-8">
+                        {{ user.email }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Létrehozott Projektek
+                    </div>                    
+                    <div class="col-8">
+                        {% if projectCount > 0 %}
+                            {{ projectCount }}&nbsp;db
+                        {% else %}
+                            Nem hozott létre projektet
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Aktív munka
+                    </div>                    
+                    <div class="col-8">
+                        {{ getProjectJobName(user.activeJobId) }}
+                    </div>
+                </div>                
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Várakozó munka
+                    </div>                    
+                    <div class="col-8">
+                        {% if pendingJobCount > 0 %}
+                            {{ pendingJobCount }}&nbsp;db
+                        {% else %}
+                            Nincs várakozó munkája
+                        {% endif %}
+                    </div>
+                </div>  
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Elkészült munka
+                    </div>                    
+                    <div class="col-8">
+                        {% if doneJobCount > 0 %}
+                            {{ doneJobCount }}&nbsp;db
+                        {% else %}
+                            Nincs elkészült munkája
+                        {% endif %}
+                    </div>
+                </div>  
+            </div>
+        </fieldset>
+        <a href="{{ url_for('users') }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     
+    </div>
+{% endblock body %}

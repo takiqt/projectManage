@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">
+                    Adataim
+                </legend>          
+                <div class="form-group">
+                    <label for="fullName" class="form-control-label">
+                        Név
+                    </label>
+                    <div class="form-control form-control-lg">
+                        {{ user.fullName }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.userName.label(class="form-control-label") }}
+                    {% if form.userName.errors %}
+                        {{ form.userName(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.userName.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.userName(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label(class="form-control-label") }}
+                    {% if form.email.errors %}
+                        {{ form.email(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.send(class="btn btn-outline-info") }}
+                <a href="{{ url_for('changePassword') }}" class="btn btn-outline-secondary"><i class="fa fa-pencil"></i>&nbsp;Jelszó módosítása</a>     
+            </div>
+        </form>
+    </div>
+{% endblock body %}

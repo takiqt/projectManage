@@ -14,8 +14,11 @@ bcrypt = Bcrypt(app)
 datepicker(app)
 loginManager = LoginManager()
 loginManager.init_app(app)
+loginManager.session_protection = "strong"
 loginManager.login_view = 'login'
 loginManager.login_message = 'Folytatáshoz bejelentkezés szükséges!'
+loginManager.needs_refresh_message = 'Folytatáshoz bejelentkezés megerősítése szükséges!'
+loginManager.needs_refresh_message_category = 'info'
 
 migrate = Migrate(app, db)
 

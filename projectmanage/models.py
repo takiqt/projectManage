@@ -32,7 +32,37 @@ class User(UserMixin, db.Model):
     activeJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False, default=0)
 
     def __repr__(self):
-        return f"Felhasználó: #{self.id} - {self.fullName}" 
+        return f"Felhasználó: #{self.id} - {self.fullName}"
+    
+    @staticmethod
+    def getProjectJobListCategories(userId):
+        """ Felhasználó munkáit lekéri kategorizálva
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+        
+        Returns:
+            [dict] -- Munkák kategorizálva
+        """
+        user = User.query.get_or_404(userId)
+        doneJobs = []
+        activeJob = None
+        pendingJobs = []
+        for projectJob in user.projectJobsWork:
+            if projectJob.isDone:
+                doneJobs.append(projectJob)
+            elif projectJob.id == user.activeJobId:
+                activeJob = projectJob
+            else:
+                pendingJobs.append(projectJob)
+
+        return {
+            'activeJob' : activeJob,
+            'doneJobs'  : doneJobs,
+            'pendingJobs' : pendingJobs,
+        }
+
+
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -31,7 +31,11 @@
                 {{ user.email}}        
             </td>
             <td>
-                <a href="{{ url_for('userData', userId=user.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
+                {% if user != current_user %}
+                    <a href="{{ url_for('userData', userId=user.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
+                {% else %}
+                    <a href="{{ url_for('account') }}" class="btn btn-outline-info"><i class="fa fa-user"></i>&nbsp;Adataim</a>
+                {% endif %}
             </td>
             <td>
                 {% if user != current_user %}
@@ -42,4 +46,4 @@
         {% endfor %}
     </tbody>
 </table>
-{% endblock %}
+{% endblock body %}
