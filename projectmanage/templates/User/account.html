@@ -43,9 +43,27 @@
                 </div>
             </fieldset>
             <div class="form-group">
-                {{ form.send(class="btn btn-outline-info") }}
-                <a href="{{ url_for('changePassword') }}" class="btn btn-outline-secondary"><i class="fa fa-pencil"></i>&nbsp;Jelszó módosítása</a>     
+                {{ form.send(class="btn btn-outline-success") }}
+                <a href="{{ url_for('changePassword') }}" class="btn btn-outline-info"><i class="fa fa-pencil"></i>&nbsp;Jelszó módosítása</a>     
             </div>
         </form>
+    </div>
+    <div class="content-section">
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">
+                Projektjeim
+            </legend>
+            {% for project in user.projects %}      
+                {{ project.name }}
+                <br />
+            {% endfor %}
+        </fieldset>    
+    </div>
+    <div class="content-section">
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">
+                Projekt munkáim
+            </legend>      
+        </fieldset>    
     </div>
 {% endblock body %}

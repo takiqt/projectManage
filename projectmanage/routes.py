@@ -1,5 +1,5 @@
 from flask import render_template, url_for, request, session, redirect, flash, Response
-from flask_login import login_user, logout_user, login_required,  current_user
+from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
 from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
@@ -313,7 +313,7 @@ def login():
 
             return redirect(url_for('index'))        
         
-        flash(f'Hibás felhasználó név vagy jelszó!', 'success')
+        flash(f'Hibás felhasználó név vagy jelszó!', 'danger')
         return redirect(url_for('login'))
     else:
         if current_user.is_authenticated == True:
@@ -424,8 +424,24 @@ def changePassword():
     Returns:
         [response]
     """
+    form = ModifyAccountPasswordForm()
+    if form.validate_on_submit():
+        user = load_user(current_user.id)
+        passwordOld = form.passwordOld.data
+        passwordNew = form.passwordNew.data
+        confirmPassword = form.confirmPassword.data
+        if bcrypt.check_password_hash(user.password, passwordOld) and passwordNew == confirmPassword:
+            flash(f'Sikeres jelszó módosítás!', 'success')
+            hashedPassword = bcrypt.generate_password_hash(passwordNew).decode('utf-8')
+            user.password = hashedPassword
+            db.session.commit()
+            return redirect(url_for('account'))
+        else:
+            flash(f'Hibás aktuális jelszó!', 'danger')            
+   
     data = {
         'activeLink' : 'account',
+        'form' : form,
     }
     return render_template('User/changePassword.html', **data)
 
