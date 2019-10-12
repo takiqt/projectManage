@@ -97,16 +97,16 @@
             </div> 
         </fieldset>
     </div>
-    <!-- Munkák -->
+    <!-- Feladatok -->
     <div class="content-section">
         <fieldset class="form-group">
             <h2>
-                Projekt munkái
+                Projekt feladatok
             </h2>
             <hr>
             {% if current_user in project.leaders or project.creator == current_user %}
                 <a href="{{ url_for('addProjectJob',  projectId=project.id) }}" class="btn btn-outline-info">
-                    <i class="fa fa-tasks"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Munka felvitele
+                    <i class="fa fa-tasks"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Feladat felvitele
                 </a> 
             {% endif %}
         </fieldset>
@@ -133,7 +133,7 @@
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="4">Nincs rögzítve munka a projekthez!</td>
+                    <td colspan="4">Nincs rögzítve feladat a projekthez!</td>
                 </tr>
                 {% endif %}
             </tbody>

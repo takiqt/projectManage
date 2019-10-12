@@ -197,7 +197,7 @@ $(function() {
             sessionCount = 1;
             localStorage.setItem('sessionCount', sessionCount);
             this.displaySessionCount();
-            startAudio.play();
+            //startAudio.play();
           }
           timer = setInterval(function() {
             _this.stepDown();
@@ -222,7 +222,7 @@ $(function() {
               localStorage.setItem('startTime', startTime);
               localStorage.setItem('type', type);
               this.displaySessionCount();
-              endAudio.play();
+              //endAudio.play();
             } else {
               sessionCount ++;              
               currentTime = sessionTime;
@@ -233,7 +233,7 @@ $(function() {
               localStorage.setItem('startTime', startTime);
               localStorage.setItem('type', type);
               this.displaySessionCount();
-              startAudio.play();
+              //startAudio.play();
             }
           }
         }

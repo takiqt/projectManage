@@ -98,7 +98,7 @@ class ProjectJob(db.Model):
     delTime = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f'Projekt munka: {self.name} (#{self.id}) - projekt: #{self.projectId}'
+        return f'Projekt feladat: {self.name} (#{self.id}) - projekt: #{self.projectId}'
 
 class ProjectJobWorktimeHistory(db.Model):   
     id = db.Column(db.Integer, primary_key=True)

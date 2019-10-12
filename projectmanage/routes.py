@@ -8,6 +8,9 @@ from projectmanage.functions import *
 from datetime import datetime
 import pprint
 
+# ----
+# Projektre / Projekt feladatra vonatkozó URL-k
+# ----
 @app.route('/')
 @app.route('/home')
 @login_required
@@ -81,17 +84,31 @@ def addProject():
         }
         return render_template('Project/addProject.html', **data)
 
-# Projekt adatai aloldal
 @app.route("/projectData/<int:projectId>")
 @login_required
 def projectData(projectId):
+    """ Projekt adatai aloldal
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     project = Project.query.get_or_404(projectId)
     return render_template('Project/projectData.html', project=project, menuTitle='adatlap', activeLink='projects')
-    
-# Vezető lista aloldal
+
 @app.route("/projectLeaders/<int:projectId>", methods=['POST', 'GET'])
 @login_required
 def projectLeaders(projectId):
+    """ Vezető lista aloldal
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     project = Project.query.get_or_404(projectId)
     form = AddProjectLeader()
     form.users.query = User.query.order_by(User.fullName).all()
@@ -111,10 +128,17 @@ def projectLeaders(projectId):
         
     return render_template('Project/projectUsers.html', project=project, mode='leaders', menuTitle='vezetők', form=form, activeLink='projects')
 
-# Munkatárs lista aloldal
 @app.route("/projectWorkers/<int:projectId>", methods=['POST', 'GET'])
 @login_required
 def projectWorkers(projectId):
+    """ Munkatárs lista aloldal
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     project = Project.query.get_or_404(projectId)
     form = AddProjectWorker()
     form.users.query = User.query.order_by(User.fullName).all()
@@ -134,10 +158,17 @@ def projectWorkers(projectId):
 
     return render_template('Project/projectUsers.html', project=project, mode='workers',  menuTitle='munkatársak', form=form, activeLink='projects')
 
-# Vezető törlése a projektből
 @app.route('/projectLeaders/<int:projectId>/delete', methods=['POST'])
 @login_required
 def deleteProjectLeader(projectId):
+    """ Vezető törlése a projektből
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     project = Project.query.get_or_404(projectId)
     if current_user == project.creator:
         userId = request.form.get('delUserId')
@@ -149,10 +180,17 @@ def deleteProjectLeader(projectId):
         
     return redirect(url_for('projectLeaders', projectId=project.id))
 
-# Munkatárs törlése a projektből
 @app.route('/projectWorkers/<int:projectId>/delete', methods=['POST'])
 @login_required
 def deleteProjectWorker(projectId):
+    """ Munkatárs törlése a projektből
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     project = Project.query.get_or_404(projectId)
     if current_user == project.creator:
         userId = request.form.get('delUserId')
@@ -164,10 +202,17 @@ def deleteProjectWorker(projectId):
         
     return redirect(url_for('projectWorkers', projectId=project.id))
 
-# Projekt munka felvitele
 @app.route('/addProjectJob/<int:projectId>', methods=['POST', 'GET'])
 @login_required
 def addProjectJob(projectId):
+    """ Projekt feladat felvitele
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     form = AddProjectJobForm()
     form.users.query = User.query.order_by(User.fullName).all()
     app.logger.info(form.dateStart.data)
@@ -185,7 +230,7 @@ def addProjectJob(projectId):
         projectJob = ProjectJob(**projectJobData)
         db.session.add(projectJob)
         db.session.commit()
-        flash(f'Sikeres munka felvitel!', 'success')
+        flash(f'Sikeres feladat felvitel!', 'success')
         return redirect(url_for('projectData', projectId=projectId))
     else:
         data = {
@@ -195,26 +240,47 @@ def addProjectJob(projectId):
         }
         return render_template('ProjectJob/addProjectJob.html', **data)
 
-# Projekt munka adatlap
 @app.route('/projectJobData/<int:projectJobId>')
 @login_required
 def projectJobData(projectJobId):
+    """ Projekt feladat adatlap
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     project = Project.query.get_or_404(projectJob.projectId)
     return render_template('ProjectJob/projectJobData.html', projectJob=projectJob, project=project, activeLink='projects')
 
-# Projekt munka levétele
 @app.route('/startJob/<int:projectJobId>')
 @login_required
 def startJob(projectJobId):    
+    """ Projekt feladat levétele
+    
+    Arguments:
+        projectJobId {[int]} -- Projekt feladat azonosító
+    
+    Returns:
+        [response]
+    """
     current_user.activeJobId = projectJobId
     db.session.commit()
     return redirect(url_for('index'))
 
-# Projekt munka állapot változatás
 @app.route('/manageJob/<int:projectJobId>', methods=['POST'])
 @login_required
 def manageJob(projectJobId):
+    """ Projekt feladat állapot változatás
+    
+    Arguments:
+        projectJobId {[int]} -- Projekt feladat azonosító
+    
+    Returns:
+        [response]
+    """
     comment = request.form.get('comment')
     workTimeString = request.form.get('workTime')
     workTime = float(workTimeString.replace(',', '.'))
@@ -244,10 +310,9 @@ def manageJob(projectJobId):
 
     return redirect(url_for('index'))
 
-# 
+# ----
 # Felhasználókra vonatkozó URL-k
-# 
-
+# ----
 @app.route("/register", methods=['GET', 'POST'])
 @login_required
 def register():
@@ -454,7 +519,7 @@ def sendMessage(targetUserId, subject):
     
     Arguments:
         targetUserId {[int]} -- Címzett felhasználó azonosító
-        subject {[string]} -- Tárgy
+        subject {[string]}   -- Tárgy
     
     Returns:
         [response]
@@ -492,7 +557,7 @@ def loadMessage(messageId, fromPage):
     """ Üzenet betöltés
     
     Arguments:
-        messageId {[int]} -- Üzenet azonosító
+        messageId {[int]}   -- Üzenet azonosító
         fromPage {[string]} -- Inbox / Outbox -ból nyitottuk meg
     
     Returns:

@@ -140,12 +140,12 @@ class AddProjectLeader(FlaskForm):
     save = SubmitField('Felvitel')
 
 class AddProjectJobForm(FlaskForm):
-    """ Projekt munka felvitel Form adatok
+    """ Projekt feladat felvitel Form adatok
     
     Arguments:
         FlaskForm {[Object]} -- FlaskForm ősosztály
     """
-    name = StringField('Munka név', 
+    name = StringField('Feladat név', 
                 validators=[
                     DataRequired(message="Megadása kötelező!"), 
                     Length(min=5, max=30, message="Mező hosszának 5 és 30 karakter között kell lennie!")
@@ -158,7 +158,7 @@ class AddProjectJobForm(FlaskForm):
     save = SubmitField('Felvitel')
 
 class AddProjectWorkTimeForm(FlaskForm):
-    """ Projekt munka, munkaiőd felvitel Form adatok
+    """ Projekt feladat, munkaidő felvitel Form adatok
     
     Arguments:
         FlaskForm {[Object]} -- FlaskForm ősosztály

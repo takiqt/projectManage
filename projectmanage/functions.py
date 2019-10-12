@@ -42,7 +42,6 @@ def page_not_found(e):
     """
     return redirect(url_for('login'))
 
-
 @app.context_processor
 def my_utility_processor():
     """ Template segédfüggvények
@@ -61,15 +60,15 @@ def my_utility_processor():
         project = Project.query.get_or_404(projectId)
         return project.name
     def getProjectJobName(projectJobId):
-        """ Projekt munka név lekérés
+        """ Projekt feladat név lekérés
         Arguments:
-            projectJobId {[int]} -- [Projekt munka azonosító]
+            projectJobId {[int]} -- [Projekt feladat azonosító]
 
         Returns:
             [string] -- [Név]
         """
         if projectJobId == 0:
-            return 'Nincs aktív munka kiválasztva'
+            return 'Nincs aktív feladat kiválasztva'
         else:
             projectJob = ProjectJob.query.get_or_404(projectJobId)
             return projectJob.name

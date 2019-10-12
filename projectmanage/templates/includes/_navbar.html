@@ -23,8 +23,7 @@
                     <div class="underline"></div>
                 </li> 
             </ul>
-        {% endif %}
-        
+        {% endif %}        
         <ul class="navbar-nav ml-auto active-ul-l">       
             {% if current_user.is_authenticated %}
                 <li class="nav-link {% if activeLink == 'send' %} active-link {% endif %}">
