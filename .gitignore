@@ -1,6 +1,7 @@
 .vscode/
 .idea/
 __pycache__
+migrations
 projectmanage/__pycache__
 migrations/__pycache__
 config.py
