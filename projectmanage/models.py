@@ -61,9 +61,7 @@ class User(UserMixin, db.Model):
             'doneJobs'  : doneJobs,
             'pendingJobs' : pendingJobs,
         }
-
-
-
+        
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
@@ -99,6 +97,17 @@ class ProjectJob(db.Model):
 
     def __repr__(self):
         return f'Projekt feladat: {self.name} (#{self.id}) - projekt: #{self.projectId}'
+
+    @property
+    def serialize(self):
+        """ Serializálva visszaadja a feladat adatait
+        """
+        return {
+            'id' : self.id,
+            'name' : self.name,
+            'start_date' : self.dateStart.strftime("%d-%m-%Y"),
+        }
+
 
 class ProjectJobWorktimeHistory(db.Model):   
     id = db.Column(db.Integer, primary_key=True)

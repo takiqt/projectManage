@@ -1,0 +1,21 @@
+
+{% block body %}
+
+    <h3>Gantt</h3>
+    <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.css') }}">
+    <script src="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dhtmlx_gantt/locale/locale_hu.js') }}"></script>
+
+    <div id="gantt_here" style='width:80%; height:600px;'></div>
+    <script type="text/javascript">
+        gantt.config.columns = [
+            {name: "text", label: 'Név', tree: true, width: '*', resize: true},
+            {name: "start_date",label: 'Kezdés', align: 'center', resize: true},
+            {name: "end_date", align: 'center', label: 'Végzés'},
+        ];
+        
+        gantt.init("gantt_here");
+        gantt.load("/api/jobs", 'json');
+    </script>
+
+{% endblock body %}

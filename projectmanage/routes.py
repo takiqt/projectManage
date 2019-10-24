@@ -1,4 +1,4 @@
-from flask import render_template, url_for, request, session, redirect, flash, Response
+from flask import render_template, url_for, request, session, redirect, flash, Response, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
@@ -573,6 +573,7 @@ def loadMessage(messageId, fromPage):
     return render_template('User/messageData.html', message=message, activeLink=fromPage)
 
 @app.route('/inbox')
+@login_required
 def inbox():
     """ Bejővő Üzenetek
     
@@ -583,6 +584,7 @@ def inbox():
     return render_template('User/inbox.html', messages=messages, activeLink='inbox')
 
 @app.route('/sent')
+@login_required
 def sent():    
     """ Kimenő Üzenetek
     
@@ -591,3 +593,30 @@ def sent():
     """
     messages = UserMessage.getSentMessages(current_user.id) 
     return render_template('User/sent.html', messages=messages, activeLink='sent')
+
+@app.route('/gantt')
+def gantt():
+    jobAll = User.getProjectJobListCategories(current_user.id)
+    jobs = jobAll['pendingJobs']
+    taskJson =  jsonify(data=[i.serialize for i in jobs])
+    data = {
+        'json' :taskJson,
+    }
+    return render_template('gantt.html', **data)
+
+
+@app.route('/api/jobs', methods=['GET'])
+def jobsAll():
+    jobs = [        
+        {"id":11, "text":"Project #1", "start_date":"28-03-2018", "duration":"11", "progress": 0.6, "open": True, "readonly": True},
+		{"id":1, "text":"Project #2", "start_date":"01-04-2018", "duration":"18", "progress": 0.4, "open": True, "readonly": False},
+
+		{"id":2, "text":"Task #1", "start_date":"02-04-2018", "duration":"8", "parent":"1", "progress":0.5, "open": True},
+		 
+    ]
+    links = [
+        	{"id":"1","source":"1","target":"2","type":"3"},
+    ]
+	 
+  
+    return jsonify(data=jobs, links=links)
