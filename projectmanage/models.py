@@ -85,6 +85,7 @@ class ProjectJob(db.Model):
     description = db.Column(db.Text, nullable=False)
     dateStart = db.Column(db.DateTime, nullable=False, default=datetime.now)
     dateEnd = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    duration = db.Column(db.Integer, nullable=False)
     estimatedTime = db.Column(db.Float, nullable=False)
     workerUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     parentJobId = db.Column(db.Integer, nullable=True, default=0)
@@ -100,14 +101,30 @@ class ProjectJob(db.Model):
 
     @property
     def serialize(self):
-        """ Serializálva visszaadja a feladat adatait
+        """ Objektum serializálása
         """
         return {
             'id' : self.id,
             'name' : self.name,
-            'start_date' : self.dateStart.strftime("%d-%m-%Y"),
+            'start_date' : self.dateStart.strftime("%Y-%m-%d"),
         }
 
+class ProjectJobLink(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    source = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
+    target = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
+    type   = db.Column(db.String(1), unique=False, nullable=False)
+
+    @property
+    def serialize(self):
+        """ Objektum serializálása
+        """
+        return {
+            'id' : self.id,
+            'source' : self.source,
+            'target' : self.target,
+            'type' : self.type,
+        }
 
 class ProjectJobWorktimeHistory(db.Model):   
     id = db.Column(db.Integer, primary_key=True)
