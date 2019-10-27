@@ -19,6 +19,7 @@
                 </td>
                 <td>
                     <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
+                    <a href="{{ url_for('projectGantt', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-line-chart"></i>&nbsp;Gantt</a>
                 </td>
             </tr>
         {% endfor %}

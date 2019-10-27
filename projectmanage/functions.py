@@ -1,5 +1,4 @@
-
-from projectmanage import app, db, bcrypt, loginManager
+from projectmanage import app, db, loginManager
 from urllib.parse import urlparse, urljoin
 from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
 from flask import url_for, request, redirect

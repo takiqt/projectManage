@@ -1,24 +1,3 @@
-/* html,
-body {
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-} */
-
-/* body {
-  background: linear-gradient(60deg, #135058, #f1f2b5);
-  padding-top: 20px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-@media (min-height: 500px) {
-  body {
-    align-items: center;
-    padding-top: 0;
-  }
-} */
-
 .clock {
   background-color: #343A40;  
   border-radius: 4px;

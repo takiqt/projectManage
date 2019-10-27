@@ -61,6 +61,15 @@ class User(UserMixin, db.Model):
             'doneJobs'  : doneJobs,
             'pendingJobs' : pendingJobs,
         }
+
+    @property
+    def serialize(self):
+        """ Objektum serializálása
+        """
+        return {
+            'id'         : self.id,
+            'name'       : self.fullName,
+        }
         
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,9 +127,11 @@ class ProjectJob(db.Model):
         return {
             'id'         : self.id,
             'text'       : self.name,
+            'desc'       : self.description,
             'start_date' : self.dateStart.strftime("%d-%m-%Y %H:%M'"),            
             'end_date'   : self.dateEnd.strftime("%d-%m-%Y %H:%M'"),            
             'duration'   : self.duration,            
+            'userId'     : self.workerUserId,            
             'open'       : True,
         }
 

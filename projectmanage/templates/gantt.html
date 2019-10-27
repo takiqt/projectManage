@@ -1,21 +1,82 @@
-
+{% extends "gantLayout.html" %}
 {% block body %}
 
-    <h3>Gantt</h3>
+    <h3 style="padding-left: 20px;">Gantt - Projekt nézet : {{ project.name }}&nbsp;(#{{project.id}}) </h3>
+    <hr>
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.css') }}">
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/locale/locale_hu.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dhtmlx_gantt/ext/dhtmlxgantt_fullscreen.js') }}"></script>
 
-    <div id="ganttTable" style='width:80%; height:600px;'></div>
+    <div style="padding-left: 20px;">
+        <button class="btn btn-outline-info" type=button onclick=grid_dec()>
+            <i class="fa fa-minus"></i>&nbsp;<i class="fa fa-minus"></i>
+        </button>
+        <button class="btn btn-outline-info" type=button onclick=grid_inc()>
+            <i class="fa fa-plus"></i>&nbsp;<i class="fa fa-plus"></i>
+        </button>
+        <button id="fullscreenButton" class="btn btn-outline-info" type="button">
+            <i class="fa fa-expand"></i>&nbsp;Teljes képernyő        
+        </button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('projects') }}">
+            <i class="fa fa-reply"></i>&nbsp;Vissza   
+        </a>
+    </div>
+    <br>        
+    <hr>
+    <div id="ganttTable" style='height:600px;'></div>
+    <script>
+        var button = document.getElementById("fullscreenButton");
+            button.addEventListener("click", function(){
+                if (!gantt.getState().fullscreen) {                    
+                    gantt.expand();
+                }
+                else {
+                    gantt.collapse();
+                }
+            }, false);
+
+            function grid_inc() {
+                gantt.config.grid_width += 20;
+                gantt.render();
+            }
+
+            function grid_dec() {
+                gantt.config.grid_width -= 20;
+                gantt.render();
+            }
+    </script>
     <script type="text/javascript">
+        var userSelect = []
+        {% for user in users %}
+            user = {
+                'key' : {{user.id}},
+                'label' : '{{user.fullName}}'
+            };
+            userSelect.push(user)
+        {% endfor %}
+               
+        gantt.serverList('users', userSelect);
+        gantt.templates.grid_row_class = function(start, end, task) { 
+            return "nested_task"; 
+        };        
+        gantt.config.lightbox.sections = [
+            {name: "description", height:38, map_to:"text", type:"textarea",focus:true},
+            {name: "desc", height: 90, map_to:"desc", type:"textarea"},
+            {name: "user",  height: 22, map_to: "userId", type: "select", options: gantt.serverList("users")},
+            {name: "time", height: 72, type:"duration", map_to:"auto"}
+        ];
+        gantt.locale.labels.section_user = "Felhasználó";
+        gantt.locale.labels.section_desc = "Leírás";
         gantt.config.columns = [
-            {name: "text", label: 'Név', tree: true, width: '*'},
-            {name: "start_date", align: 'center', label: 'Kezdés', width: '100'},
-            {name: "end_date",   align: 'center', label: 'Végzés', width: '100'},
+            {name: "text", label: 'Név', tree: true, width: '*', resize: true},
+            {name: "start_date", align: 'center', label: 'Kezdés', width: '100', resize: true},
+            {name: "end_date",   align: 'center', label: 'Végzés', width: '100', resize: true},
             {name: 'add', align: 'center'}
         ];
         gantt.config.duration_unit = "hour";
-        
+        gantt.config.keep_grid_width = false;
+	    gantt.config.grid_resize = true;
         gantt.config.scales = [
             {unit: "hour", step: 1, format: "%H"},
             {unit: "day", step: 1, format: "%Y-%M-%d"}

@@ -27,6 +27,12 @@ body {
 	min-height: 250px;
 }
 
+.gantLayoutMain {
+	width: 100%; 
+	align-content: center; 
+	display: inline-block;	 
+}
+
 .content-section {
   background: #ffffff;
   padding: 10px 20px;
