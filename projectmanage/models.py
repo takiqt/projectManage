@@ -98,15 +98,30 @@ class ProjectJob(db.Model):
 
     def __repr__(self):
         return f'Projekt feladat: {self.name} (#{self.id}) - projekt: #{self.projectId}'
+    
+    @staticmethod
+    def setDeleted(projectJobId):
+        """[Feladat töröltre állíása]
+        
+        Arguments:
+            projectJobId {[int]} -- [Feladat azonosító]
+        """
+        projectJob = ProjectJob.query.get_or_404(projectJobId)
+        projectJob.deleted = True
+        projectJob.delTime = datetime.now()
+        db.session.commit()   
 
     @property
     def serialize(self):
         """ Objektum serializálása
         """
         return {
-            'id' : self.id,
-            'name' : self.name,
-            'start_date' : self.dateStart.strftime("%Y-%m-%d"),
+            'id'         : self.id,
+            'text'       : self.name,
+            'start_date' : self.dateStart.strftime("%d-%m-%Y %H:%M'"),            
+            'end_date'   : self.dateEnd.strftime("%d-%m-%Y %H:%M'"),            
+            'duration'   : self.duration,            
+            'open'       : True,
         }
 
 class ProjectJobLink(db.Model):

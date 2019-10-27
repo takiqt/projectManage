@@ -2,7 +2,7 @@ from flask import render_template, url_for, request, session, redirect, flash, R
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
-from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
+from projectmanage.models import User, Project, ProjectJob, ProjectJobLink, ProjectJobWorktimeHistory, UserMessage
 from projectmanage.forms import *
 from projectmanage.functions import *
 from datetime import datetime
@@ -214,8 +214,7 @@ def addProjectJob(projectId):
         [response]
     """
     form = AddProjectJobForm()
-    form.users.query = User.query.order_by(User.fullName).all()
-    app.logger.info(form.dateStart.data)
+    form.users.query = User.query.order_by(User.fullName).all()    
     if form.validate_on_submit():
         projectJobData = {
             'name' : form.name.data,
@@ -226,6 +225,7 @@ def addProjectJob(projectId):
             'creatorUserId' : current_user.id,
             'workerUserId' : form.users.data.id,
             'projectId' : projectId,
+            'duration' : 10,
         }
         projectJob = ProjectJob(**projectJobData)
         db.session.add(projectJob)
@@ -598,25 +598,134 @@ def sent():
 def gantt():
     jobAll = User.getProjectJobListCategories(current_user.id)
     jobs = jobAll['pendingJobs']
-    taskJson =  jsonify(data=[i.serialize for i in jobs])
+    taskJson = jsonify(data=[i.serialize for i in jobs])
     data = {
         'json' :taskJson,
     }
     return render_template('gantt.html', **data)
 
 
-@app.route('/api/jobs', methods=['GET'])
+@app.route('/api/jobList', methods=['GET'])
 def jobsAll():
-    jobs = [        
-        {"id":11, "text":"Project #1", "start_date":"28-03-2018", "duration":"11", "progress": 0.6, "open": True, "readonly": True},
-		{"id":1, "text":"Project #2", "start_date":"01-04-2018", "duration":"18", "progress": 0.4, "open": True, "readonly": False},
+    """ Feladatok, kapcsolatok lekérése a charthoz
+    
+    Returns:
+        [json] -- Feladatok és linkek serializálva
+    """ 
+    if current_user.is_authenticated:	 
+        jobs  = ProjectJob.query.filter(ProjectJob.deleted==False).order_by(ProjectJob.dateStart)
+        links = ProjectJobLink.query.all()
+    else:
+        jobs  = []
+        links = []
+    return jsonify(data=[i.serialize for i in jobs], links=[j.serialize for j in links])
 
-		{"id":2, "text":"Task #1", "start_date":"02-04-2018", "duration":"8", "parent":"1", "progress":0.5, "open": True},
-		 
-    ]
-    links = [
-        	{"id":"1","source":"1","target":"2","type":"3"},
-    ]
-	 
-  
-    return jsonify(data=jobs, links=links)
+
+@app.route('/api/task', methods=['POST'])
+@login_required
+def jobAddFromChart():     
+    """ Feladat felvitele charton keresztül
+    
+    Returns:
+        [json] -- Feladat serializálva / Üres JSON
+    """ 
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        projectJob = ProjectJob()
+        projectJob.projectId = 1
+        projectJob.dateStart = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M')
+        projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
+        projectJob.duration  = data['duration']
+        projectJob.estimatedTime = data['duration']
+        projectJob.name        = data['text']
+        projectJob.description = f'{data["text"]} nevű feladat leírása'
+        projectJob.creatorUserId = current_user.id
+        projectJob.workerUserId = current_user.id
+        projectJob.workerUserId = current_user.id
+
+        db.session.add(projectJob)
+        db.session.commit()
+
+        return jsonify(projectJob.serialize) 
+    
+    return jsonify(data=[])
+    
+
+@app.route('/api/task/<int:projectJobId>', methods=['PUT', 'DELETE'])
+@login_required
+def jobManageFromChart(projectJobId):
+    """ Feladat módosítása és törlése charton keresztül
+    
+    Arguments:
+        projectJobId {[int]} -- Feladat azonosító
+    
+    Returns:
+        [json] -- Feladat serializálva / Üres JSON
+    """   
+    data = request.form.to_dict() 
+    # Feladat frissítése
+    if request.method == 'PUT': 
+        projectJob = ProjectJob.query.get(projectJobId)
+        projectJob.dateStart = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M')
+        projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
+        projectJob.duration  = data['duration']
+        projectJob.name      = data['text']
+ 
+        db.session.add(projectJob)
+        db.session.commit()
+
+        return jsonify(projectJob.serialize)        
+    # Feladat törlése    
+    elif request.method == 'DELETE':
+        ProjectJob.setDeleted(projectJobId)        
+    return jsonify([])     
+
+@app.route('/api/link', methods=['POST'])
+@login_required
+def linkAddFromChart():
+    """ Link felvitele charton keresztül
+    
+    Returns:
+        [json] -- Link serializálva / Üres JSON
+    """ 
+    if request.method == 'POST':
+        data = request.form.to_dict()
+        projectJobLink = ProjectJobLink()
+        projectJobLink.source = data['source']
+        projectJobLink.target = data['target']
+        projectJobLink.type   = data['type']
+
+        db.session.add(projectJobLink)
+        db.session.commit()
+        return jsonify(projectJobLink.serialize)
+    
+    return jsonify(data=[])
+
+@app.route('/api/link/<int:projectJobLinkId>', methods=['PUT', 'DELETE'])
+@login_required
+def linkManageFromChart(projectJobLinkId):
+    """ Link módosítása és törlése charton keresztül
+    
+    Arguments:
+        projectJobLinkId {[int]} -- Feladat link azonosító
+    
+    Returns:
+        [json] -- Link serializálva / Üres JSON
+    """
+    data = request.form.to_dict()    
+    # Link frissítése
+    if request.method == 'PUT':
+        projectJobLink = ProjectJobLink.query.get(projectJobLinkId)
+        projectJobLink.source = data['source']
+        projectJobLink.target = data['target']
+        projectJobLink.type   = data['type']
+
+        db.session.add(projectJobLink)
+        db.session.commit()
+
+        return (projectJobLink.serialize)
+    # Link törlése
+    elif request.method == 'DELETE':
+        ProjectJobLink.query.filter_by(id=projectJobLinkId).delete()
+        db.session.commit()
+    return jsonify([])

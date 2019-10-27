@@ -6,17 +6,26 @@
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/locale/locale_hu.js') }}"></script>
 
-    <div id="gantt_here" style='width:80%; height:600px;'></div>
+    <div id="ganttTable" style='width:80%; height:600px;'></div>
     <script type="text/javascript">
-        // gantt.config.columns = [
-        //     {name: "text", label: 'Név', tree: true, width: '*', resize: true},
-        //     {name: "start_date",label: 'Kezdés', align: 'center', resize: true},
-        //     {name: "end_date", align: 'center', label: 'Végzés'},
-        // ];
+        gantt.config.columns = [
+            {name: "text", label: 'Név', tree: true, width: '*'},
+            {name: "start_date", align: 'center', label: 'Kezdés', width: '100'},
+            {name: "end_date",   align: 'center', label: 'Végzés', width: '100'},
+            {name: 'add', align: 'center'}
+        ];
         gantt.config.duration_unit = "hour";
         
-        gantt.init("gantt_here");
-        gantt.load("/api/jobs", 'json');
+        gantt.config.scales = [
+            {unit: "hour", step: 1, format: "%H"},
+            {unit: "day", step: 1, format: "%Y-%M-%d"}
+        ]
+        
+        gantt.init("ganttTable");
+        gantt.load("/api/jobList", 'json');
+        var dp = new gantt.dataProcessor("/api/");
+        dp.init(gantt)
+        dp.setTransactionMode("REST");
     </script>
 
 {% endblock body %}
