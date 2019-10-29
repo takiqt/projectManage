@@ -31,6 +31,21 @@ def index():
     }
     return render_template('home.html', **data)
 
+@app.route('/gantt')
+@login_required
+def userGantt():
+    """ Felhasználó Gantt megjelenítése
+    
+    Returns:
+        [response]
+    """
+    data = {
+        'activeLink' : 'home',        
+        'mode'       : 'user',
+        'users'      : [{'id': current_user.id, 'name': current_user.fullName }],
+    }
+    return render_template('gantt.html', **data)
+
 @app.route("/projects")
 @login_required
 def projects():
@@ -41,8 +56,8 @@ def projects():
     """
     projects = Project.query.order_by(Project.name).all()
     data = {
-        'projects' : projects,
         'activeLink' : 'projects',
+        'projects' : projects,
     }
     return render_template('Project/projects.html', **data)
 
@@ -110,11 +125,22 @@ def projectGantt(projectId):
     Returns:
         [response]
     """
-    project = Project.query.get_or_404(projectId)
+    project = Project.query.get_or_404(projectId) 
+    usersAll = []
+    leaders  = [project.creatorUserId]
+    for user in project.workers:
+        usersAll.append({'id': user.id, 'name': user.fullName})
+    for user in project.leaders:
+        usersAll.append({'id': user.id, 'name': user.fullName})  
+        leaders.append(user.id)  
+    users = list({u['id']:u for u in usersAll}.values())
+    
     data = {
         'activeLink' : 'projects',
-        'fromPage'   : 'projectList',
+        'mode'       : 'project',
         'project'    : project,
+        'users'      : users,
+        'canModify'  : True if current_user.id in leaders else False,
     }
     return render_template('gantt.html', **data)
 

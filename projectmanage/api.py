@@ -6,20 +6,47 @@ from projectmanage.models import User, Project, ProjectJob, ProjectJobLink
 from datetime import datetime
 
 @app.route('/api/jobList', methods=['GET'])
-def jobsAll():
-    """ Feladatok, kapcsolatok lekérése a charthoz
+@login_required
+def userJobsAll():
+    """ Feladatok, kapcsolatok lekérése a charthoz / User nézet
     
     Returns:
         [json] -- Feladatok és linkek serializálva
     """ 
-    jobs  = []
-    links = []
-    
-    if current_user.is_authenticated:	 
-        jobs  = ProjectJob.query.filter(ProjectJob.deleted==False).order_by(ProjectJob.dateStart)
-        links = ProjectJobLink.query.all()
-        users = User.query.all()
+    jobs = ProjectJob.query.filter(
+            and_(ProjectJob.deleted==False,
+                 ProjectJob.isDone==False,
+                 ProjectJob.workerUserId==current_user.id
+                )).order_by(ProjectJob.dateStart)
 
+    links = ProjectJobLink.query.all()
+
+    return jsonify(data=[i.serialize for i in jobs], links=[j.serialize for j in links])
+
+@app.route('/api/jobList/<int:projectId>', methods=['GET'])
+@login_required
+def projectJobsAll(projectId):
+    """ Feladatok, kapcsolatok lekérése a charthoz / Projekt nézet
+    
+    Returns:
+        [json] -- Feladatok és linkek serializálva
+    """
+    project = Project.query.get_or_404(projectId)
+    jobs = ProjectJob.query.filter(
+            and_(ProjectJob.deleted==False,
+                 ProjectJob.projectId==projectId
+                )).order_by(ProjectJob.dateStart)
+
+    leaders  = [project.creatorUserId]
+    usersAll = []
+    for user in project.workers:
+        usersAll.append({'id': user.id, 'name': user.fullName})
+    for user in project.leaders:
+        usersAll.append({'id': user.id, 'name': user.fullName})  
+        leaders.append(user.id)
+
+    links = ProjectJobLink.query.all()
+     
     return jsonify(data=[i.serialize for i in jobs], links=[j.serialize for j in links])
 
 @app.route('/api/task', methods=['POST'])
@@ -33,7 +60,7 @@ def jobAddFromChart():
     if request.method == 'POST':
         data = request.form.to_dict()
         projectJob = ProjectJob()
-        projectJob.projectId = 1
+        projectJob.projectId = data['projectId']
         projectJob.dateStart = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M')
         projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
         projectJob.duration  = data['duration']

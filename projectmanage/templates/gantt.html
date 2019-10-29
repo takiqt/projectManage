@@ -1,7 +1,11 @@
 {% extends "gantLayout.html" %}
 {% block body %}
-
-    <h3 style="padding-left: 20px;">Gantt - Projekt nézet : {{ project.name }}&nbsp;(#{{project.id}}) </h3>
+    {% if mode == 'project' %}
+        <h3 style="padding-left: 20px;">Gantt Chart - Projekt nézet : {{ project.name }}&nbsp;(#{{project.id}})</h3>
+    {% endif %}
+    {% if mode == 'user' %}
+        <h3 style="padding-left: 20px;">Gantt Chart - Felhasználó nézet : {{ current_user.fullName }}</h3>
+    {% endif %}
     <hr>
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.css') }}">
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/dhtmlxgantt.js') }}"></script>
@@ -10,17 +14,28 @@
 
     <div style="padding-left: 20px;">
         <button class="btn btn-outline-info" type=button onclick=grid_dec()>
-            <i class="fa fa-minus"></i>&nbsp;<i class="fa fa-minus"></i>
+            <i class="fa fa-minus"></i>&nbsp;Csökkent
         </button>
         <button class="btn btn-outline-info" type=button onclick=grid_inc()>
-            <i class="fa fa-plus"></i>&nbsp;<i class="fa fa-plus"></i>
+            <i class="fa fa-plus"></i>&nbsp;Növel
+        </button>
+        </button>
+        <button class="btn btn-outline-info" type=button onclick=gantt.render()>
+            <i class="fa fa-refresh">&nbsp;Frissítés</i>
         </button>
         <button id="fullscreenButton" class="btn btn-outline-info" type="button">
             <i class="fa fa-expand"></i>&nbsp;Teljes képernyő        
         </button>
-        <a class="btn btn-outline-secondary" href="{{ url_for('projects') }}">
-            <i class="fa fa-reply"></i>&nbsp;Vissza   
-        </a>
+        {% if mode == 'project' %}
+            <a class="btn btn-outline-secondary" href="{{ url_for('projects') }}">
+                <i class="fa fa-reply"></i>&nbsp;Vissza   
+            </a>
+        {% endif %}
+        {% if mode == 'user' %}
+            <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">
+                <i class="fa fa-reply"></i>&nbsp;Vissza   
+            </a>
+        {% endif %}
     </div>
     <br>        
     <hr>
@@ -50,31 +65,38 @@
         var userSelect = []
         {% for user in users %}
             user = {
-                'key' : {{user.id}},
-                'label' : '{{user.fullName}}'
+                'key'   : {{user.id}},
+                'label' : '{{user.name}}'
             };
             userSelect.push(user)
         {% endfor %}
                
         gantt.serverList('users', userSelect);
+        gantt.serverList('projects', [ { 'key' : {{ project.id}} , 'label': '{{ project.name }}' }]);
         gantt.templates.grid_row_class = function(start, end, task) { 
             return "nested_task"; 
         };        
         gantt.config.lightbox.sections = [
+            {name: "project",  height: 22, map_to: "projectId", type: "select", options: gantt.serverList("projects")},
             {name: "description", height:38, map_to:"text", type:"textarea",focus:true},
             {name: "desc", height: 90, map_to:"desc", type:"textarea"},
             {name: "user",  height: 22, map_to: "userId", type: "select", options: gantt.serverList("users")},
             {name: "time", height: 72, type:"duration", map_to:"auto"}
         ];
         gantt.locale.labels.section_user = "Felhasználó";
+        gantt.locale.labels.section_project = "Projekt";
         gantt.locale.labels.section_desc = "Leírás";
         gantt.config.columns = [
-            {name: "text", label: 'Név', tree: true, width: '*', resize: true},
-            {name: "start_date", align: 'center', label: 'Kezdés', width: '100', resize: true},
-            {name: "end_date",   align: 'center', label: 'Végzés', width: '100', resize: true},
-            {name: 'add', align: 'center'}
+            {name: "text", label: 'Név', tree: true, width: '120', resize: true},
+            {name: "start_date", align: 'center', label: 'Kezdés', width: '*', resize: true},
+            {name: "end_date",   align: 'center', label: 'Végzés', width: '*', resize: true},
+            {name: "duration",   align: 'center', label: 'Hossz (óra)', width: '*', resize: true},
+            {% if mode == 'project' and canModify == true %}
+                {name: 'add', align: 'center'}
+            {% endif %}
         ];
         gantt.config.duration_unit = "hour";
+        gantt.config.drag_progress = false;
         gantt.config.keep_grid_width = false;
 	    gantt.config.grid_resize = true;
         gantt.config.scales = [
@@ -83,7 +105,12 @@
         ]
         
         gantt.init("ganttTable");
-        gantt.load("/api/jobList", 'json');
+        {% if mode == 'project' %}
+            gantt.load("/api/jobList/{{ project.id }}", 'json');
+        {% endif %}
+        {% if mode == 'user' %}
+            gantt.load("/api/jobList", 'json');
+        {% endif %}
         var dp = new gantt.dataProcessor("/api/");
         dp.init(gantt)
         dp.setTransactionMode("REST");
