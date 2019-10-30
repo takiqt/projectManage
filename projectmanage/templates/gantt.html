@@ -13,18 +13,23 @@
     <script src="{{ url_for('static', filename='js/dhtmlx_gantt/ext/dhtmlxgantt_fullscreen.js') }}"></script>
 
     <div style="padding-left: 20px;">
-        <button class="btn btn-outline-info" type=button onclick=grid_dec()>
+        <button class="btn btn-outline-info" type=button onclick=gridDec()>
             <i class="fa fa-minus"></i>&nbsp;Csökkent
         </button>
-        <button class="btn btn-outline-info" type=button onclick=grid_inc()>
+        <button class="btn btn-outline-info" type=button onclick=gridInc()>
             <i class="fa fa-plus"></i>&nbsp;Növel
-        </button>
-        </button>
+        </button>        
         <button class="btn btn-outline-info" type=button onclick=gantt.render()>
             <i class="fa fa-refresh">&nbsp;Frissítés</i>
         </button>
         <button id="fullscreenButton" class="btn btn-outline-info" type="button">
             <i class="fa fa-expand"></i>&nbsp;Teljes képernyő        
+        </button>
+        <button class="btn btn-outline-info" type="button" onclick=dayView()>
+            <i class="fa fa-bar-chart"></i>&nbsp;Napi nézet       
+        </button>
+        <button class="btn btn-outline-info" type="button" onclick=monthView()>
+            <i class="fa fa-calendar"></i>&nbsp;Havi nézet        
         </button>
         {% if mode == 'project' %}
             <a class="btn btn-outline-secondary" href="{{ url_for('projects') }}">
@@ -51,13 +56,30 @@
                 }
             }, false);
 
-            function grid_inc() {
+            function gridInc() {
                 gantt.config.grid_width += 20;
                 gantt.render();
-            }
+            };
 
-            function grid_dec() {
+            function gridDec() {
                 gantt.config.grid_width -= 20;
+                gantt.render();
+            };
+
+            function dayView() {
+                gantt.config.scales = [
+                    {unit: "hour", step: 1, format: "%H"},
+                    {unit: "day", step: 1, format: "%M-%d"},
+                ];
+                gantt.render();
+            };
+
+            function monthView()
+            {
+                gantt.config.scales = [
+                    {unit: "day", step: 1, format: "%d"},
+                    {unit: "month", step: 1, format: "%M"},
+                ];
                 gantt.render();
             }
     </script>
@@ -72,12 +94,16 @@
         {% endfor %}
                
         gantt.serverList('users', userSelect);
-        gantt.serverList('projects', [ { 'key' : {{ project.id}} , 'label': '{{ project.name }}' }]);
+        {% if mode == 'project' %}
+            gantt.serverList('projects', [ { 'key' : {{ project.id}} , 'label': '{{ project.name }}' }]);
+        {% endif %}
         gantt.templates.grid_row_class = function(start, end, task) { 
             return "nested_task"; 
         };        
         gantt.config.lightbox.sections = [
-            {name: "project",  height: 22, map_to: "projectId", type: "select", options: gantt.serverList("projects")},
+            {% if mode == 'project' %}
+                {name: "project",  height: 22, map_to: "projectId", type: "select", options: gantt.serverList("projects")},
+            {% endif %}
             {name: "description", height:38, map_to:"text", type:"textarea",focus:true},
             {name: "desc", height: 90, map_to:"desc", type:"textarea"},
             {name: "user",  height: 22, map_to: "userId", type: "select", options: gantt.serverList("users")},
@@ -100,9 +126,18 @@
         gantt.config.keep_grid_width = false;
 	    gantt.config.grid_resize = true;
         gantt.config.scales = [
-            {unit: "hour", step: 1, format: "%H"},
-            {unit: "day", step: 1, format: "%Y-%M-%d"}
-        ]
+            {unit: "day", step: 1, format: "%d"},
+            {unit: "month", step: 1, format: "%M"}
+        ];
+
+        gantt.attachEvent("onBeforeLinkAdd", function(id, link) {
+            if (link.type == 0) {
+                return true;                
+            } else {
+                alert('Csak végzés-kezdés kapcsolat felvitele lehetséges!');
+                return false;                
+            }
+        });
         
         gantt.init("ganttTable");
         {% if mode == 'project' %}

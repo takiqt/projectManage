@@ -91,8 +91,9 @@ def jobManageFromChart(projectJobId):
     """   
     data = request.form.to_dict() 
     # Feladat frissítése
-    if request.method == 'PUT': 
+    if request.method == 'PUT':
         projectJob = ProjectJob.query.get(projectJobId)
+        projectJob.projectId = data['projectId']
         projectJob.dateStart = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M')
         projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
         projectJob.duration  = data['duration']
