@@ -245,7 +245,7 @@ class Project(db.Model):
         """   
         if self.creatorUserId != userId:
             return False
-            
+
     @staticmethod
     def isVisible(self, userId):
         """ Projekt látható-e az adott usernek
@@ -258,8 +258,6 @@ class Project(db.Model):
         """
         if self.creatorUserId == userId:     
             return True
-
-    @staticmethod isModifiable(self, userId):
 
 class ProjectJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
