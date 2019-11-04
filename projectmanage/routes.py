@@ -57,7 +57,7 @@ def projects():
     if current_user.admin == True:
         projects = Project.query.order_by(Project.name).all()
     else:
-        projects =     
+        projects = User.getUserVisibleProjects(current_user.id)    
     
     data = {
         'activeLink' : 'projects',

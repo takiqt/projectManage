@@ -1,4 +1,4 @@
-from projectmanage import db
+from projectmanage import db, app
 from flask_login import LoginManager, UserMixin, current_user
 from datetime import datetime
 from sqlalchemy import or_, and_, func, text
@@ -34,6 +34,41 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"Felhasználó: #{self.id} - {self.fullName}"
     
+    @staticmethod
+    def getUserVisibleProjects(userId):
+        """ Felhasználó által látható projektek lekérése
+        
+        Arguments:
+            userId {[int]} -- [Felhasználó azonosító]
+        
+        Returns:
+            [dict] -- Projektek
+        """
+        projects = []
+        # Rögzített projektek
+        sql = text('select `id` from `project` WHERE `creatorUserId` = :userId')
+        result = db.engine.execute(sql, { 'userId' : userId })
+        res = result.fetchall()        
+        for resProject in res:            
+            project = Project.query.get(resProject['id'])
+            projects.append(project)                    
+        # Vezető projektben
+        sql = text('select `projectId` from `projectLeaders` WHERE `userId` = :userId')
+        result = db.engine.execute(sql, { 'userId' : userId })        
+        res = result.fetchall()
+        for resProject in res:            
+            project = Project.query.get(resProject['projectId'])
+            projects.append(project)  
+        # Munkatárs projektben
+        sql = text('select `projectId` from `projectWorkers` WHERE `userId` = :userId')
+        result = db.engine.execute(sql, { 'userId' : userId })        
+        res = result.fetchall()
+        for resProject in res:            
+            project = Project.query.get(resProject['projectId'])
+            projects.append(project) 
+            
+        return sorted(list({v.id:v for v in projects}.values()), key=lambda k: k.name)
+
     @staticmethod
     def getProjectJobListCategories(userId):
         """ Felhasználó munkáit lekéri kategorizálva

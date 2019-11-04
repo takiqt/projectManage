@@ -46,7 +46,7 @@
                         Állapot
                     </div>                
                     <div class="col-8">
-                        x
+                        {{ getProjectStatus(project.id) }}
                     </div>
                 </div>
                 <hr>
@@ -172,7 +172,11 @@
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="4">Nincs rögzítve feladat a projekthez!</td>
+                    {% if project.creator == current_user %}
+                        <td colspan="5">Nincs rögzítve feladat a projekthez!</td>
+                    {% else %}
+                        <td colspan="4">Nincs rögzítve feladat a projekthez!</td>
+                    {% endif %}
                 </tr>
                 {% endif %}
             </tbody>

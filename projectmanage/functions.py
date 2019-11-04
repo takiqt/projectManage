@@ -58,6 +58,22 @@ def my_utility_processor():
         """
         project = Project.query.get_or_404(projectId)
         return project.name
+    def getProjectStatus(projectId):
+        """ Projekt státusz lekérés
+        Arguments:
+            projectId {[int]} -- [Projekt azonosító]
+
+        Returns:
+            [string] -- [Név]
+        """
+        project = Project.query.get_or_404(projectId)
+        if project.isDone == True:
+            status = 'Lezárt'
+        elif project.deleted == True:
+            status = 'Archivált'
+        else:
+            status = 'Folyamatban'
+        return status
     def getProjectJobName(projectJobId):
         """ Projekt feladat név lekérés
         Arguments:
@@ -94,6 +110,7 @@ def my_utility_processor():
         return UserMessage.getUnreadCount(userId)
     return dict(
         getProjectName=getProjectName, 
+        getProjectStatus=getProjectStatus, 
         getUserName=getUserName, 
         getUnreadCount=getUnreadCount,
         getProjectJobName=getProjectJobName,
