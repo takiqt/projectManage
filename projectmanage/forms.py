@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import Form, StringField, FloatField, DateField, DateTimeField, IntegerField, SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 class RegisterFrom(FlaskForm):
@@ -120,7 +120,8 @@ class AddProjectForm(FlaskForm):
     dateStart = DateField('Kezdő dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
     dateEnd = DateField('Végző dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])    
     save = SubmitField('Felvitel')
-
+    modify = SubmitField('Módosítás')
+ 
 class AddProjectWorker(FlaskForm):
     """ Projekt munkatárs felvitel Form adatok
     

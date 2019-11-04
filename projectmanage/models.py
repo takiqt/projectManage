@@ -1,7 +1,7 @@
 from projectmanage import db
 from flask_login import LoginManager, UserMixin, current_user
 from datetime import datetime
-from sqlalchemy import or_, and_, func
+from sqlalchemy import or_, and_, func, text
 
 projectWorkers = db.Table('projectWorkers',
     db.Column('userId', db.Integer, db.ForeignKey('user.id')),
@@ -49,18 +49,42 @@ class User(UserMixin, db.Model):
         activeJob = None
         pendingJobs = []
         for projectJob in user.projectJobsWork:
-            if projectJob.isDone:
-                doneJobs.append(projectJob)
-            elif projectJob.id == user.activeJobId:
-                activeJob = projectJob
-            else:
-                pendingJobs.append(projectJob)
+            project = Project.query.get(projectJob.projectId)
+            if projectJob.seen == False and project.isDone == False and project.deleted == False:
+                if projectJob.isDone:
+                    doneJobs.append(projectJob)
+                elif projectJob.id == user.activeJobId:
+                    activeJob = projectJob
+                else:
+                    pendingJobs.append(projectJob)
 
         return {
             'activeJob' : activeJob,
             'doneJobs'  : doneJobs,
             'pendingJobs' : pendingJobs,
         }
+
+    @staticmethod
+    def isPassivable(self, user):
+        """ User passzíválását ellenőrzi
+        
+        Arguments:
+            user {[User]} -- Passziváló User objektum
+        
+        Returns:
+            bool
+        """
+        if user.admin != True:
+            return False
+        
+        if self.activeJobId > 0:
+            return False
+        
+        jobsAll = User.getProjectJobListCategories(self.id)
+        if len(jobsAll['pendingJobs']) > 0:
+            return False
+            
+        return True
 
     @property
     def serialize(self):
@@ -169,8 +193,73 @@ class Project(db.Model):
     doneTime = db.Column(db.DateTime, nullable=True)
     deleted  = db.Column(db.Boolean, nullable=False, default=False)
     delTime = db.Column(db.DateTime, nullable=True)
+
     def __repr__(self):
         return f"Project: #{self.id} - {self.name}" 
+
+    @staticmethod
+    def isClosable(self, userId):
+        """ Projekt lezárható-e
+        
+        Arguments:
+            userId {[int]} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """
+        if self.creatorUserId != userId:
+            return False
+        for job in self.projectJobs:
+            if job.deleted == False and job.isDone == False:
+                return False
+        return True
+
+    @staticmethod
+    def isArchivable(self, userId):
+        """ Projekt archiválható-e
+        
+        Arguments:
+            userId {[int]} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """        
+        if self.creatorUserId != userId:
+            return False
+        sql = text('select COUNT(*) AS `count` from `project_job` INNER JOIN `user` ON `user`.`activeJobId` = `project_job`.`id` WHERE `projectId` = :projectId')
+        result = db.engine.execute(sql, { 'projectId' : self.id })
+        res = result.fetchone()        
+        if res['count'] > 0:
+            return False
+        return True
+
+    @staticmethod 
+    def isModifiable(self, userId):
+        """ Projekt módosítható-e
+        
+        Arguments:
+            userId {[int]} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """   
+        if self.creatorUserId != userId:
+            return False
+            
+    @staticmethod
+    def isVisible(self, userId):
+        """ Projekt látható-e az adott usernek
+
+        Arguments:
+            userId {[int]} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """
+        if self.creatorUserId == userId:     
+            return True
+
+    @staticmethod isModifiable(self, userId):
 
 class ProjectJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -187,6 +276,8 @@ class ProjectJob(db.Model):
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     isDone = db.Column(db.Boolean, nullable=False, default=False)
     doneTime = db.Column(db.DateTime, nullable=True)
+    seen = db.Column(db.Boolean, nullable=False, default=False)
+    seenTime = db.Column(db.DateTime, nullable=True)
     deleted  = db.Column(db.Boolean, nullable=False, default=False)
     delTime = db.Column(db.DateTime, nullable=True)
 
@@ -204,6 +295,21 @@ class ProjectJob(db.Model):
         projectJob.deleted = True
         projectJob.delTime = datetime.now()
         db.session.commit()   
+
+    @staticmethod
+    def getJobWorktimes(projectJobId):
+        """ Feladathoz tartozó könyvelt munkaidők lekérése
+        
+        Arguments:
+            projectJobId {[int]} -- Feladat azonosító
+
+        Returns:
+            [flask_sqlalchemy.BaseQuery] -- Munkaidők
+        """
+        worktimes = ProjectJobWorktimeHistory.query.filter(
+            ProjectJobWorktimeHistory.projectJobId == projectJobId
+        ).order_by(ProjectJobWorktimeHistory.createTime.desc())
+        return worktimes
 
     @property
     def serialize(self):
@@ -250,6 +356,7 @@ class ProjectJobWorktimeHistory(db.Model):
     workTime = db.Column(db.Float, nullable=False)
     comment  = db.Column(db.Text, nullable=False)
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    createUserId =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return f'Munkaidő - #{self.projectJobId} - Idő: {self.workTime} óra'

@@ -5,7 +5,8 @@
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">Név</th>
-                <th scope="col">Adatok</th>
+                <th scope="col">Állapot</th>
+                <th scope="col">Műveletek</th>
             </tr>
         </thead>
         <tbody>
@@ -18,8 +19,26 @@
                     {{ project.name}}        
                 </td>
                 <td>
+                    {% if project.isDone == true %}
+                        Lezárt
+                    {% elif project.deleted == true %}
+                        Archivált
+                    {% else %}
+                        Folyamatban
+                    {% endif %}
+                </td>
+                <td>
                     <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
-                    <a href="{{ url_for('projectGantt', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-line-chart"></i>&nbsp;Gantt</a>
+                    {% if project.isDone == false and project.deleted == false %}
+                        <a href="{{ url_for('projectGantt', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-line-chart"></i>&nbsp;Gantt</a>
+                    {% endif %}
+                    {% if project.creatorUserId == current_user.id %}
+                        {% if project.isDone == false and project.deleted == false %}
+                        <a href="{{ url_for('projectModify', projectId=project.id) }}" class="btn btn-outline-warning"><i class="fa fa-pencil"></i>&nbsp;Módosítás</a>
+                        <a href="{{ url_for('projectClose', projectId=project.id) }}" class="btn btn-outline-success"><i class="fa fa-check-square"></i>&nbsp;Lezárás</a>
+                        <a href="{{ url_for('projectArchive', projectId=project.id) }}" class="btn btn-outline-danger"><i class="fa fa-lock"></i>&nbsp;Archiválás</a>
+                        {% endif %}
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

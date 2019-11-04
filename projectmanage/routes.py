@@ -54,7 +54,11 @@ def projects():
     Returns:
         [response]
     """
-    projects = Project.query.order_by(Project.name).all()
+    if current_user.admin == True:
+        projects = Project.query.order_by(Project.name).all()
+    else:
+        projects =     
+    
     data = {
         'activeLink' : 'projects',
         'projects' : projects,
@@ -91,11 +95,12 @@ def addProject():
             db.session.add(project)
             project.leaders.append(current_user)
             db.session.commit()
-            flash(f'Sikeres projekt felvitel', 'success')
+            flash(f'Sikeres projekt felvitel!', 'success')
             return redirect(url_for('projects'))
     else:
         data = {
             'form' : form,
+            'modify' : False,
             'activeLink' : 'addProject',
         }
         return render_template('Project/addProject.html', **data)
@@ -112,7 +117,127 @@ def projectData(projectId):
         [response]
     """
     project = Project.query.get_or_404(projectId)
-    return render_template('Project/projectData.html', project=project, menuTitle='adatlap', activeLink='projects')
+    sumHours = 0
+    worktimesAll = []
+    for job in project.projectJobs:
+        worktimes = ProjectJob.getJobWorktimes(job.id)
+        for worktime in worktimes:
+            user = User.query.get(worktime.createUserId)
+            projectJob = ProjectJob.query.get(job.id)
+            userName = user.fullName
+            worktimesAll.append({
+                'projectJobName' : projectJob.name, 
+                'userName' :userName, 
+                'date' : worktime.createTime, 
+                'workTime' : worktime.workTime   
+            })
+            sumHours += worktime.workTime 
+    worktimesAllSorted = sorted(worktimesAll, key=lambda k: k['date']) 
+    data = {
+        'project' : project,
+        'activeLink' : 'projects',
+        'sumHours' : sumHours,
+        'worktimesAll' : worktimesAllSorted,
+    }
+    return render_template('Project/projectData.html', **data)
+
+@app.route("/projectModify/<int:projectId>", methods=['GET', 'POST'])
+@login_required
+def projectModify(projectId):
+    """ Projekt módosítás aloldal
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
+    project = Project.query.get_or_404(projectId)
+    if current_user.id != project.creatorUserId:
+        return redirect(url_for('index'))
+
+    form = AddProjectForm()
+    if form.validate_on_submit() and form.dateStart.data <= form.dateEnd.data:
+        oldProject = Project.query.filter_by(name=form.name.data).first()
+        if oldProject is not None and oldProject.id != project.id:
+            flash(f'{form.name.data} - Adott néven már van rögzített projekt!', 'danger')
+            data = {
+                'form' : form,
+                'modify' : True,
+                'activeLink' : 'projects',                
+            }
+            return render_template('Project/addProject.html', **data)
+        else:
+            project = Project.query.get_or_404(projectId) 
+            project.name = form.name.data
+            project.description = form.description.data
+            project.dateStart = form.dateStart.data
+            project.dateEnd = form.dateEnd.data
+
+            db.session.add(project)
+            db.session.commit()
+
+            flash(f'Sikeres projekt módosítás!', 'success')
+            return redirect(url_for('projects'))
+    else:
+        if request.method == 'GET':
+            form.name.data = project.name
+            form.description.data = project.description
+            form.dateStart.data = project.dateStart
+            form.dateEnd.data = project.dateEnd
+        elif request.method == 'POST':
+            flash('Kezdésnek ({}) korábban kell lennie mint a Végzésnek ({})!'.format(form.dateStart.data, form.dateEnd.data), 'danger')
+
+        data = {
+            'form' : form,
+            'modify' : True,
+            'activeLink' : 'projects',
+        }
+        return render_template('Project/addProject.html', **data)
+
+@app.route("/projectClose/<int:projectId>")
+@login_required
+def projectClose(projectId):
+    """ Projekt lezárása
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
+    project = Project.query.get(projectId)
+    if Project.isClosable(project, current_user.id):
+        project.isDone = True
+        project.doneTime = datetime.now()
+        db.session.add(project)
+        db.session.commit()
+        flash(f'{project.name} nevű projekt sikeresen lezárva!', 'success')
+    else:
+        flash(f'{project.name} nevű projekt nem zárható le! Van nem elkészült feladat a projektben!', 'danger')
+    return redirect(url_for('projects'))
+
+@app.route("/projectArchive/<int:projectId>")
+@login_required
+def projectArchive(projectId):
+    """ Projekt archiválása (törlés)
+    
+    Arguments:
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
+    project = Project.query.get(projectId)
+    if Project.isArchivable(project, current_user.id):
+        project.deleted = True
+        project.delTime = datetime.now()
+        db.session.add(project)
+        db.session.commit()
+        flash(f'{project.name} nevű projekt sikeresen archiválva!', 'success')
+    else:
+        flash(f'{project.name} nevű projekt nem archiválható! Van aktív feladat a projektben!', 'danger')
+    return redirect(url_for('projects'))
 
 @app.route("/projectGantt/<int:projectId>")
 @login_required
@@ -193,8 +318,8 @@ def projectWorkers(projectId):
         userId = form.users.data.id        
         sql = text('select COUNT(*) AS count from projectworkers WHERE userId = :userId AND projectId = :projectId')
         result = db.engine.execute(sql, { 'userId' : userId, 'projectId' : project.id })
-        r = result.fetchone()
-        if r['count'] == 0:
+        res = result.fetchone()
+        if res['count'] == 0:
             user = User.query.filter_by(id=userId).first()      
             project.workers.append(user)
             db.session.commit() 
@@ -338,6 +463,7 @@ def manageJob(projectJobId):
             'comment' : comment,
             'workTime' : workTime,
             'projectJobId' : projectJobId,
+            'createUserId' : current_user.id,
         }
         projectJobWorktimeHistory = ProjectJobWorktimeHistory(**workTimeHistoryData)
         db.session.add(projectJobWorktimeHistory)
@@ -355,6 +481,30 @@ def manageJob(projectJobId):
         flash(f'Hibás munkaidő adatok!', 'danger')
 
     return redirect(url_for('index'))
+
+@app.route('/projectJobCheckDone/<int:projectJobId>/<int:projectId>')
+@login_required
+def projectJobCheckDone(projectJobId, projectId):
+    """ Elkészült Projekt feladat ellenőrzése
+    
+    Arguments:
+        projectJobId {[int]} -- Projekt feladat azonosító
+        projectId {[int]} -- Projekt azonosító
+    
+    Returns:
+        [response]
+    """
+    project = Project.query.get(projectId)
+    projectJob = ProjectJob.query.get(projectJobId)
+    if project.creator == current_user and projectJob.isDone == True and projectJob.seen == False:
+        projectJob.seen = True
+        projectJob.seenTime = datetime.now()
+        db.session.add(projectJob)
+        db.session.commit()
+        flash(f'Sikeres ellenőrzés!', 'success')
+    else:
+        flash(f'Sikertelen ellenőrzés!', 'danger')
+    return redirect(url_for('projectData', projectId=projectId))
 
 # ----
 # Felhasználókra vonatkozó URL-k
@@ -398,6 +548,31 @@ def register():
             'activeLink' : 'users',
         }
         return render_template('register.html', **data)
+
+@app.route('/passiveUser/<int:userId>')
+@login_required
+def passiveUser(userId):
+    """ Felhasználó passziválása
+    
+    Arguments:
+        userId {[int]} -- Felhasználó azonosító
+    
+    Returns:
+        [response]
+    """
+    if current_user.admin != True:
+        return redirect(url_for('index'))
+
+    user = User.query.get(userId)
+    if User.isPassivable(user, current_user):
+        user.deleted = True
+        user.delTime = datetime.now()
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Sikeres felhasználó passziválás!', 'success')
+    else:
+        flash(f'Sikertelen felhasználó passziválás!', 'danger')
+    return redirect(url_for('users'))
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -453,9 +628,14 @@ def users():
     Returns:
         [response]
     """
-    users = User.query.order_by(User.fullName).all()
+    users = User.query.filter(User.deleted == False).order_by(User.fullName).all()
+    if current_user.admin == True:
+        passiveUsers = User.query.filter(User.deleted == True).order_by(User.fullName).all()
+    else:
+        passiveUsers = None
     data = {
         'users' : users,
+        'passiveUsers' : passiveUsers,
         'activeLink' : 'users',
     }
     return render_template('User/users.html', **data)
@@ -637,14 +817,13 @@ def sent():
     Returns:
         [response]
     """
-    messages = UserMessage.getSentMessages(current_user.id) 
+    messages = UserMessage.getSentMessages(current_user.id)   
     return render_template('User/sent.html', messages=messages, activeLink='sent')
 
 @app.route('/gantt')
 def gantt():
     users = User.query.all()
     usersSelect =[u.serialize for u in users]
-
-
+    
     return render_template('gantt.html', users=users)
 

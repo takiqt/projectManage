@@ -13,11 +13,10 @@ def userJobsAll():
     Returns:
         [json] -- Feladatok és linkek serializálva
     """ 
-    jobs = ProjectJob.query.filter(
-            and_(ProjectJob.deleted==False,
-                 ProjectJob.isDone==False,
-                 ProjectJob.workerUserId==current_user.id
-                )).order_by(ProjectJob.dateStart)
+    jobsAll = User.getProjectJobListCategories(current_user.id)
+    jobs = jobsAll['pendingJobs']
+    if jobsAll['activeJob'] is not None:
+        jobs.append(jobsAll['activeJob'])
 
     links = ProjectJobLink.query.all()
 

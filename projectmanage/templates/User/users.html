@@ -1,13 +1,12 @@
 {% extends 'layout.html' %}
-
 {% block body %}
-
 {% if current_user.admin %}
 <a href="{{ url_for('register') }}" class="btn btn-outline-info">
     <i class="fa fa-users"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Felhasználó felvitele
 </a>  
 <hr>
 {% endif %}
+<h3>Felhasználók</h3>
 <table class="table table-striped">
     <thead class="thead-dark">
         <tr>
@@ -16,6 +15,9 @@
             <th scope="col">E-mail cím</th>
             <th scope="col">Adatok</th>
             <th scope="col">Üzenet</th>
+            {% if current_user.admin %}
+                <th scope="col">Passziválás</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -24,9 +26,7 @@
             <td>
                 {{ user.id }}
             </td>
-            <td>
-                {{ user.fullName }}        
-            </td>            
+            <td> {{ user.fullName }} </td>            
             <td>
                 {{ user.email}}        
             </td>
@@ -42,8 +42,47 @@
                     <a href="{{ url_for('sendMessage', targetUserId=user.id) }}" class="btn btn-outline-success"><i class="fa fa-envelope"></i>&nbsp;Küldés</a>
                 {% endif %}
             </td>
+            {% if current_user.admin %}
+                <td>
+                    {% if user != current_user%}
+                        <a href="{{ url_for('passiveUser', userId=user.id) }}" class="btn btn-outline-danger"><i class="fa fa-user"></i>&nbsp;<i class="fa fa-lock"></i>&nbsp;Passziválás</a>
+                    {% endif %}
+                </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+{% if current_user.admin %}
+    <h3>Passzivált felhasználók</h3>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Név</th>            
+                <th scope="col">E-mail cím</th>                
+                <th scope="col">Passziválás ideje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in passiveUsers %}
+            <tr>
+                <td>
+                    {{ user.id }}
+                </td>
+                <td>
+                    {{ user.fullName }}        
+                </td>            
+                <td>
+                    {{ user.email}}        
+                </td>      
+                <td>
+                    {{ user.delTime.strftime('%Y-%m-%d %H:%M') }}
+                </td>        
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
 {% endblock body %}
