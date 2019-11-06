@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
+<h3>
+    Projekt feladat {% if modify == true %}módosítás{% else %}felvitel{% endif %}
+</h3>
 <div class="content-section">
     <form action="" method="POST">
         {{ form.hidden_tag() }}
         <input type="hidden" name="projectId" value="{{ projectId }}">
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Projekt feladat felvitel
-            </legend>
             <div class="form-group">
                     {{ form.name.label(class="form-control-label") }}
                     {% if form.name.errors %}
@@ -99,9 +99,13 @@
                     {% endif %}
                 </div>                                  
             <div class="form-group">
-                {{ form.save(class="btn btn-outline-info") }}
+                {% if modify == true %}
+                    {{ form.modify(class="btn btn-outline-warning") }}            
+                {% else %}
+                    {{ form.save(class="btn btn-outline-info") }}
+                {% endif %}
+                <a href="{{ url_for('projectData', projectId=projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>    
             </div>
-            <a href="{{ url_for('projectData', projectId=projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>    
         </fieldset>
     </form>
 </div> 

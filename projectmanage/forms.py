@@ -105,7 +105,7 @@ class ModifyAccountPasswordForm(FlaskForm):
                         ])
     send = SubmitField('Módosítás')                 
 
-class AddProjectForm(FlaskForm):
+class AddAndModifyProjectForm(FlaskForm):
     """ Projekt felvitel Form adatok
     
     Arguments:
@@ -140,7 +140,7 @@ class AddProjectLeader(FlaskForm):
     users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
     save = SubmitField('Felvitel')
 
-class AddProjectJobForm(FlaskForm):
+class AddAndModifyProjectJobForm(FlaskForm):
     """ Projekt feladat felvitel Form adatok
     
     Arguments:
@@ -152,7 +152,7 @@ class AddProjectJobForm(FlaskForm):
                     Length(min=5, max=30, message="Mező hosszának 5 és 30 karakter között kell lennie!")
                 ]) 
     description = TextAreaField('Leírás', validators=[DataRequired(message="Megadása kötelező!")])
-    users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
+    users = QuerySelectField('Felhasználó', allow_blank=False, get_label='fullName')
     date = DateField('Dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
     start = TimeField('Kezdés', validators=[DataRequired(message="Megadása kötelező!")])
     duration = IntegerField('Hossz', validators=[
@@ -164,6 +164,7 @@ class AddProjectJobForm(FlaskForm):
         NumberRange(min=1, message="Minimum 1-nek kell lennie!")
         ])    
     save = SubmitField('Felvitel')
+    modify = SubmitField('Módosítás')
 
 class AddProjectWorkTimeForm(FlaskForm):
     """ Projekt feladat, munkaidő felvitel Form adatok

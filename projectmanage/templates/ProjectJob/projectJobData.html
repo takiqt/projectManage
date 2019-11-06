@@ -1,24 +1,24 @@
 {% extends 'layout.html' %}
-{% block body %}  
+{% block body %}
+    <h3>Projekt feladat adatlap:&nbsp;{{ projectJob.name }}&nbsp;(#{{projectJob.id}})</h3>  
+    <hr>
     <div class="content-section">
-        <fieldset class="form-group">
-            <h2>
-                Projekt feladat adatlap
-            </h2>
-            <h3>
-                {{ projectJob.name }}
-            </h3>
-            <small>
-                Projekt: {{ project.name }}
-            </small>
-            <hr>
+        <fieldset class="form-group">          
             <div class="container">        
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Projekt
+                    </div>                    
+                    <div class="col-8">
+                        {{ project.name }}
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-4 font-weight-bold">
                         Leírás
                     </div>                    
                     <div class="col-8">
-                        {{ projectJob.description }}
+                        {{ projectJob.description|replace('\n', '<br />')|safe }}
                     </div>
                 </div>
                 <hr>
@@ -38,6 +38,57 @@
                         {{ projectJob.dateEnd.strftime('%Y-%m-%d %H:%M') }}
                     </div>
                 </div>                    
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Hossz
+                    </div>                
+                    <div class="col-8">
+                        {{ projectJob.duration }} óra
+                    </div>
+                </div>                    
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Becsült idő
+                    </div>                
+                    <div class="col-8">
+                        {{ projectJob.estimatedTime }} óra
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Összes könyvelt idő
+                    </div>                
+                    <div class="col-8">
+                        X óra
+                    </div>
+                </div>
+                <hr>                    
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Felhasználó
+                    </div>                
+                    <div class="col-8">
+                        {{ getUserName(projectJob.workerUserId) }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Rögzítő felhasználó
+                    </div>                
+                    <div class="col-8">
+                        {{ getUserName(projectJob.creatorUserId) }}
+                    </div>
+                </div>    
+                <div class="row">
+                    <div class="col-4 font-weight-bold">
+                        Rögzítés ideje
+                    </div>                
+                    <div class="col-8">
+                        {{ projectJob.createTime.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>                 
             </div>
         </fieldset>
         <a href="{{ url_for('projectData', projectId=projectJob.projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     

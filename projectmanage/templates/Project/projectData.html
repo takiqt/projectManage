@@ -1,9 +1,13 @@
 {% extends 'layout.html' %}
-{% block body %}   
+{% block body %}
+    <h2>
+        Projekt&nbsp;adatlap:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
+    </h2>
+    <hr>
     <div class="content-section">
         <fieldset class="form-group">
             <h2>
-                Projekt&nbsp;adatlap:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
+                Adatok
             </h2>
             <hr>
             <div class="container">        
@@ -12,7 +16,7 @@
                         Leírás
                     </div>                    
                     <div class="col-8">
-                        {{ project.description }}
+                        {{ project.description|replace('\n', '<br />')|safe }}
                     </div>
                 </div>
                 <hr>
@@ -133,7 +137,7 @@
                     <th scope="col">Név</th>
                     <th scope="col">Kezdés</th>
                     <th scope="col">Végzés</th>
-                    <th scope="col">Adatok</th>
+                    <th scope="col">Műveletek</th>
                     {% if project.creator == current_user %}
                         <th scope="col">Ellenőrzés</th>
                     {% endif %}
@@ -149,10 +153,13 @@
                             "table-warning"
                             {% endif %}>
                             <td>{{ projectJob.name }}</td>
-                            <td>{{ projectJob.dateStart }}</td>
-                            <td>{{ projectJob.dateEnd }}</td>
+                            <td>{{ projectJob.dateStart.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ projectJob.dateEnd.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
                                 <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
+                                {% if projectJob.creatorUserId == current_user.id %}
+                                    <a href="{{ url_for('projectJobModify', projectJobId=projectJob.id) }}" class="btn btn-outline-warning"><i class="fa fa-pencil"></i>&nbsp;Módosítás</a>
+                                {% endif %}
                             </td>
                             {% if project.creator == current_user and projectJob.isDone == true %}
                                 <td style="text-align: center;">
@@ -166,8 +173,7 @@
                                 <td style="text-align: center;">
                                     <i class="fa fa-remove"></i>
                                 </td>
-                            {% endif %}
-                            
+                            {% endif %}                            
                         </tr>
                     {% endfor %}
                 {% else %}

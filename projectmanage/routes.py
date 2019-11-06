@@ -73,7 +73,7 @@ def addProject():
     Returns:
         [response]
     """
-    form = AddProjectForm()
+    form = AddAndModifyProjectForm()
     if form.validate_on_submit() and form.dateStart.data <= form.dateEnd.data:
         oldProject = Project.query.filter_by(name=form.name.data).first()
         if oldProject is not None:
@@ -121,6 +121,7 @@ def projectData(projectId):
 
 
     project = Project.query.get_or_404(projectId)
+    # project.description = project.description.replace('\n', '<br />')
     if current_user.admin == False and project not in User.getUserVisibleProjects(current_user.id):
         return redirect(url_for('projects'))  
       
@@ -163,7 +164,7 @@ def projectModify(projectId):
     if current_user.id != project.creatorUserId:
         return redirect(url_for('index'))
 
-    form = AddProjectForm()
+    form = AddAndModifyProjectForm()
     if form.validate_on_submit() and form.dateStart.data <= form.dateEnd.data:
         oldProject = Project.query.filter_by(name=form.name.data).first()
         if oldProject is not None and oldProject.id != project.id:
@@ -174,8 +175,7 @@ def projectModify(projectId):
                 'activeLink' : 'projects',                
             }
             return render_template('Project/addProject.html', **data)
-        else:
-            project = Project.query.get_or_404(projectId) 
+        else:             
             project.name = form.name.data
             project.description = form.description.data
             project.dateStart = form.dateStart.data
@@ -258,6 +258,8 @@ def projectGantt(projectId):
         [response]
     """
     project = Project.query.get_or_404(projectId) 
+    if not Project.isModifiable(project, current_user.id):
+        return redirect(url_for('projectData', projectId=projectId))
     usersAll = []
     leaders  = [project.creatorUserId]
     for user in project.workers:
@@ -291,7 +293,7 @@ def projectLeaders(projectId):
     if current_user.id != project.creatorUserId:
         return redirect(url_for('index'))
     form = AddProjectLeader()
-    form.users.query = User.query.order_by(User.fullName).all()
+    form.users.query = User.query.filter(User.deleted == False).order_by(User.fullName).all()
 
     if form.validate_on_submit():
         userId = form.users.data.id
@@ -323,7 +325,7 @@ def projectWorkers(projectId):
     if current_user.id != project.creatorUserId:
         return redirect(url_for('index'))
     form = AddProjectWorker()
-    form.users.query = User.query.order_by(User.fullName).all()
+    form.users.query = User.query.filter(User.deleted == False).order_by(User.fullName).all()
     
     if form.validate_on_submit():
         userId = form.users.data.id        
@@ -399,7 +401,7 @@ def addProjectJob(projectId):
     project = Project.query.get_or_404(projectId)
     if current_user not in project.leaders:
         return redirect(url_for('projects'))
-    form = AddProjectJobForm()
+    form = AddAndModifyProjectJobForm()
     form.users.query = User.query.order_by(User.fullName).all()    
     if form.validate_on_submit():
         date = form.date.data
@@ -427,8 +429,63 @@ def addProjectJob(projectId):
     else:
         data = {
             'form' : form,
+            'modify' : False,
             'activeLink' : 'projects',
             'projectId' : projectId,
+        }
+        return render_template('ProjectJob/addProjectJob.html', **data)
+
+@app.route('/projectJobModify/<int:projectJobId>', methods=['GET', 'POST'])
+@login_required
+def projectJobModify(projectJobId):
+    """ Projekt feladat módosítás
+    
+    Arguments:
+        projectJobId {[int]} -- Projekt feladat azonosító
+    
+    Returns:
+        [response]
+    """
+    projectJob = ProjectJob.query.get_or_404(projectJobId)
+    form = AddAndModifyProjectJobForm()
+    form.users.query = User.query.order_by(User.fullName).all()
+    if current_user.id != projectJob.creatorUserId:
+        return redirect(url_for('index'))
+    if form.validate_on_submit():        
+        date = form.date.data
+        start = form.start.data
+        duration = form.duration.data
+        dateStart = datetime.combine(date, start)
+        dateEnd = dateStart + timedelta(hours=duration)
+
+        projectJob.name = form.name.data
+        projectJob.description = form.description.data
+        projectJob.dateStart = dateStart
+        projectJob.dateEnd = dateEnd
+        projectJob.estimatedTime = form.estimatedTime.data
+        projectJob.duration = duration
+        projectJob.workerUserId =  form.users.data.id
+
+        db.session.add(projectJob)
+        db.session.commit()
+
+        flash(f'Sikeres projekt feladat módosítás!', 'success')
+        return redirect(url_for('projectData', projectId=projectJob.projectId))
+    else:
+        form.name.data = projectJob.name
+        form.description.data = projectJob.description
+        form.users.data = User.query.get(projectJob.workerUserId)
+        form.estimatedTime.data = projectJob.estimatedTime
+        form.duration.data = projectJob.duration
+        start = date = projectJob.dateStart     
+        form.start.data = start
+        form.date.data = date       
+
+        data = {
+            'form' : form,
+            'modify' : True,
+            'activeLink' : 'projects',
+            'projectId' : projectJob.projectId,
         }
         return render_template('ProjectJob/addProjectJob.html', **data)
 
@@ -438,7 +495,7 @@ def projectJobData(projectJobId):
     """ Projekt feladat adatlap
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectJobId {[int]} -- Projekt feladat azonosító
     
     Returns:
         [response]

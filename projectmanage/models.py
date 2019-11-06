@@ -280,6 +280,10 @@ class Project(db.Model):
         """   
         if self.creatorUserId != userId:
             return False
+        if self.isDone == True or self.deleted == True:
+            return False
+
+        return True
 
     @staticmethod
     def isVisible(self, userId):
