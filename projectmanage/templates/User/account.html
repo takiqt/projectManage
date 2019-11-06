@@ -1,12 +1,10 @@
 {% extends 'layout.html' %}
 {% block body %}
+    <h3>Adataim</h3>
     <div class="content-section">
         <form method="POST" action="">
             {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">
-                    Adataim
-                </legend>          
+            <fieldset class="form-group">                        
                 <div class="form-group">
                     <label for="fullName" class="form-control-label">
                         Név
@@ -48,22 +46,24 @@
             </div>
         </form>
     </div>
+    <hr>
+    <h3>Projektjeim</h3>
     <div class="content-section">
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Projektjeim
-            </legend>
+        <fieldset class="form-group">            
             {% for project in user.projects %}      
                 {{ project.name }}
                 <br />
             {% endfor %}
         </fieldset>    
     </div>
+    <hr>
+    <h3>Projekt feladataim</h3>
     <div class="content-section">
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Projekt feladataim
-            </legend>      
+            {% for project in user.projects %}      
+                {{ project.name }}
+                <br />
+            {% endfor %}     
         </fieldset>    
     </div>
 {% endblock body %}

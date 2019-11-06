@@ -1,23 +1,15 @@
 {% extends "layout.html" %} 
 {% block body %}
+<h3>Üzenet küldés</h3>
 <div class="content-section">
-    {% if form.toUserId.query|length == 0 %}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">
-                Üzenet küldés
-            </legend>
-            <div class="form-group">
-                Nincs felhasználó rögzítve
-            </div>
-        </fieldset>
-    {% else %}
+    {% if form.toUserId.query|length == 0 %}                        
+        <div class="form-group">
+            Nincs felhasználó rögzítve!
+        </div>
+    {% else %}    
         <form method="POST" action="">
             {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">
-                    Üzenet küldés
-                </legend>
-                
+            <fieldset class="form-group">                
                 <div class="form-group">
                     {{ form.toUserId.label(class="form-control-label") }}
                     {% if form.toUserId.errors %}

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import Form, StringField, FloatField, DateField, DateTimeField, IntegerField, SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms import Form, StringField, FloatField, DateField, TimeField, IntegerField, SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 class RegisterFrom(FlaskForm):
@@ -153,9 +153,16 @@ class AddProjectJobForm(FlaskForm):
                 ]) 
     description = TextAreaField('Leírás', validators=[DataRequired(message="Megadása kötelező!")])
     users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
-    dateStart = DateField('Kezdő dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
-    dateEnd = DateField('Végző dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
-    estimatedTime = FloatField('Becsült idő', validators=[DataRequired(message="Megadása kötelező!")])    
+    date = DateField('Dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
+    start = TimeField('Kezdés', validators=[DataRequired(message="Megadása kötelező!")])
+    duration = IntegerField('Hossz', validators=[
+        DataRequired(message="Megadása kötelező!"),
+        NumberRange(min=1, message="Minimum 1-nek kell lennie!")
+        ])
+    estimatedTime = FloatField('Becsült idő', validators=[
+        DataRequired(message="Megadása kötelező!"),
+        NumberRange(min=1, message="Minimum 1-nek kell lennie!")
+        ])    
     save = SubmitField('Felvitel')
 
 class AddProjectWorkTimeForm(FlaskForm):

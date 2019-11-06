@@ -6,7 +6,7 @@ from projectmanage.models import User, Project, ProjectJob, ProjectJobLink, Proj
 from projectmanage.forms import *
 from projectmanage.functions import *
 from projectmanage.api import *
-from datetime import datetime
+from datetime import datetime, timedelta
 import pprint
 
 # ----
@@ -74,7 +74,7 @@ def addProject():
         [response]
     """
     form = AddProjectForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and form.dateStart.data <= form.dateEnd.data:
         oldProject = Project.query.filter_by(name=form.name.data).first()
         if oldProject is not None:
             flash(f'{form.name.data} - Adott néven már van rögzített projekt!', 'danger')
@@ -98,6 +98,8 @@ def addProject():
             flash(f'Sikeres projekt felvitel!', 'success')
             return redirect(url_for('projects'))
     else:
+        if request.method == 'POST':
+            flash('Kezdésnek ({}) korábban kell lennie mint a Végzésnek ({})!'.format(form.dateStart.data, form.dateEnd.data), 'danger')
         data = {
             'form' : form,
             'modify' : False,
@@ -116,7 +118,12 @@ def projectData(projectId):
     Returns:
         [response]
     """
+
+
     project = Project.query.get_or_404(projectId)
+    if current_user.admin == False and project not in User.getUserVisibleProjects(current_user.id):
+        return redirect(url_for('projects'))  
+      
     sumHours = 0
     worktimesAll = []
     for job in project.projectJobs:
@@ -281,6 +288,8 @@ def projectLeaders(projectId):
         [response]
     """
     project = Project.query.get_or_404(projectId)
+    if current_user.id != project.creatorUserId:
+        return redirect(url_for('index'))
     form = AddProjectLeader()
     form.users.query = User.query.order_by(User.fullName).all()
 
@@ -311,6 +320,8 @@ def projectWorkers(projectId):
         [response]
     """
     project = Project.query.get_or_404(projectId)
+    if current_user.id != project.creatorUserId:
+        return redirect(url_for('index'))
     form = AddProjectWorker()
     form.users.query = User.query.order_by(User.fullName).all()
     
@@ -341,6 +352,7 @@ def deleteProjectLeader(projectId):
         [response]
     """
     project = Project.query.get_or_404(projectId)
+    
     if current_user == project.creator:
         userId = request.form.get('delUserId')
         user = User.query.filter_by(id=userId).first()
@@ -384,19 +396,28 @@ def addProjectJob(projectId):
     Returns:
         [response]
     """
+    project = Project.query.get_or_404(projectId)
+    if current_user not in project.leaders:
+        return redirect(url_for('projects'))
     form = AddProjectJobForm()
     form.users.query = User.query.order_by(User.fullName).all()    
     if form.validate_on_submit():
+        date = form.date.data
+        start = form.start.data
+        duration = form.duration.data
+        dateStart = datetime.combine(date, start)
+        dateEnd = dateStart + timedelta(hours=duration)
+
         projectJobData = {
             'name' : form.name.data,
-            'description' : form.description.data,
+            'description' : form.description.data,            
+            'dateStart' : dateStart,
+            'dateEnd' : dateEnd,
             'estimatedTime' : form.estimatedTime.data,
-            'dateStart' : form.dateStart.data,
-            'dateEnd' : form.dateEnd.data,
+            'duration' : duration,
             'creatorUserId' : current_user.id,
             'workerUserId' : form.users.data.id,
-            'projectId' : projectId,
-            'duration' : 10,
+            'projectId' : projectId,            
         }
         projectJob = ProjectJob(**projectJobData)
         db.session.add(projectJob)
@@ -517,6 +538,8 @@ def register():
     Returns:
         [response]
     """
+    if current_user.admin != True:
+        return redirect(url_for('index'))
     form = RegisterFrom()
     if form.validate_on_submit():
         oldUser = User.query.filter(or_(User.userName == form.userName.data, User.email == form.email.data)).first()
@@ -541,8 +564,6 @@ def register():
             flash(f'Felhasználó regisztrálva {form.userName.data}', 'success')        
             return redirect(url_for('users'))
     else:
-        if current_user.admin != True:
-            return render_template('home.html')
         data = {
             'form' : form,    
             'activeLink' : 'users',
@@ -587,7 +608,10 @@ def login():
         password = form.password.data
         remember = True if request.form.get('remember') else False
         
-        user = User.query.filter_by(userName=userName).first()
+        user = User.query.filter(and_(
+            User.userName == userName,
+            User.deleted == False
+        )).first()
 
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user, remember=remember)
@@ -751,7 +775,10 @@ def sendMessage(targetUserId, subject):
         [response]
     """ 
     form = SendMessageForm()    
-    form.toUserId.query = User.query.filter(User.id!=current_user.id).order_by(User.fullName).all()    
+    form.toUserId.query = User.query.filter(and_(
+        User.id != current_user.id,
+        User.deleted == False
+    )).order_by(User.fullName).all()    
     if form.validate_on_submit() and form.toUserId.data.id != current_user.id:       
         messageData = {
             'text' : form.text.data,
@@ -796,7 +823,11 @@ def loadMessage(messageId, fromPage):
         flash(f'Üzenet olvasottra állítva!', 'success')
 
     message.text = message.text.replace('\n', '<br />')
-    return render_template('User/messageData.html', message=message, activeLink=fromPage)
+    data = {
+        'message' : message,
+        'activeLink' : fromPage,
+    }
+    return render_template('User/messageData.html', **data)
 
 @app.route('/inbox')
 @login_required
@@ -806,8 +837,12 @@ def inbox():
     Returns:
         [response]
     """
-    messages = UserMessage.getRecievedMessages(current_user.id) 
-    return render_template('User/inbox.html', messages=messages, activeLink='inbox')
+    messages = UserMessage.getRecievedMessages(current_user.id)
+    data = {
+        'messages' : messages,
+        'activeLink' : 'inbox',
+    } 
+    return render_template('User/inbox.html', **data)
 
 @app.route('/sent')
 @login_required
@@ -817,13 +852,9 @@ def sent():
     Returns:
         [response]
     """
-    messages = UserMessage.getSentMessages(current_user.id)   
-    return render_template('User/sent.html', messages=messages, activeLink='sent')
-
-@app.route('/gantt')
-def gantt():
-    users = User.query.all()
-    usersSelect =[u.serialize for u in users]
-    
-    return render_template('gantt.html', users=users)
-
+    messages = UserMessage.getSentMessages(current_user.id) 
+    data = {
+        'messages' : messages,
+        'activeLink' : 'sent',
+    }  
+    return render_template('User/sent.html', **data)
