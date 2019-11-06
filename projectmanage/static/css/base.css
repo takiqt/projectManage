@@ -5,48 +5,48 @@ html {
     min-height: 100%;
 }
 body {
-  /* Margin bottom by footer height */
-  margin-bottom: 20px;
-  background: #fafafa;
-  color: #333333;
+    /* Margin bottom by footer height */
+    margin-bottom: 20px;
+    background: #fafafa;
+    color: #333333;
 }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 20px;
-  line-height: 20px; /* Vertically center the text there */
-  background-color: #343a40;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 20px;
+    line-height: 20px; /* Vertically center the text there */
+    background-color: #343a40;
 }
 /* Sticky footer styles
 -------------------------------------------------- */
 
 .textarea-big {
-	min-height: 250px;
+    min-height: 250px;
 }
 
 .gantLayoutMain {
-	width: 100%; 
-	align-content: center; 
-	display: inline-block;	 
+    width: 100%; 
+    align-content: center; 
+    display: inline-block;	 
 }
 
 .content-section {
-  background: #ffffff;
-  padding: 10px 20px;
-  border: 1px solid #dddddd;
-  border-radius: 5px;
-  margin-bottom: 20px;  
+    background: #ffffff;
+    padding: 10px 20px;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    margin-bottom: 20px;  
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #444444;
+    color: #444444;
 }
 
 .bg-dark {  
-  margin-bottom: 20px;  
+    margin-bottom: 20px;  
 } 
 
 a {
@@ -95,9 +95,6 @@ a {
 	width: 100%;
 }
 
-.navbar-container ul.navbar-nav.mr-auto.active-ul li:hover a {
-}
-
 .navbar-container ul.navbar-nav.mr-auto.active-ul li:active a {
 	transition: none;
 	color: rgba(255,255,255,0.76);
@@ -108,7 +105,6 @@ a {
 	background-color: rgba(255,255,255,0.76);
 }
 
-/*  */
 .navbar-container ul.navbar-nav.ml-auto.active-ul-l {
 	margin: 0;
 	padding: 0;
@@ -145,9 +141,6 @@ a {
 .navbar-container ul.navbar-nav.ml-auto.active-ul-l li:hover .underline {
 	background-color: #eb6841;
 	width: 100%;
-}
-
-.navbar-container ul.navbar-nav.ml-auto.active-ul-l li:hover a {
 }
 
 .navbar-container ul.navbar-nav.ml-auto.active-ul-l li:active a {
