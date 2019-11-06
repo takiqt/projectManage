@@ -41,6 +41,9 @@
             </div>           
             {% if current_user.is_authenticated %}
                 <div class="col-md-3">
+                  <audio id="startAudio" src="{{ url_for('static', filename='assets/sound/start.mp3') }}" type="audio/mpeg"></audio>
+                  <audio id="endAudio"   src="{{ url_for('static', filename='assets/sound/end.mp3') }}" type="audio/mpeg"></audio>
+
                     <div class="content-section">
                         <h3 style="text-align: center;">Pomodoro</h3>
                         <div class="clock">

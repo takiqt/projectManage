@@ -57,6 +57,7 @@ $(function() {
         clock.toggleClock();
         clock.toggleClock();
     }  
+    
     clock.displayCurrentTime();
     clock.displaySessionTime();
     clock.displayBreakTime();
@@ -95,9 +96,9 @@ $(function() {
           sessionTime = setSessionTime, // stores the session time in seconds
           breakTime = setBreakTime, // stores the break time in seconds
           sessionCount = setSessionCount, // stores the number of session that have passed
-          startAudio = new Audio("https://jpk-image-hosting.s3.amazonaws.com/pomodoro-app/audio/start.mp3"),
-          endAudio = new Audio("https://jpk-image-hosting.s3.amazonaws.com/pomodoro-app/audio/end.mp3");
-      
+          startAudio  = document.getElementById("startAudio");
+          endAudio  = document.getElementById("endAudio");
+         
           // Mentés  
           localStorage.setItem('active', (active == true ? 1 : 0) );
           localStorage.setItem('type', type);
@@ -197,7 +198,7 @@ $(function() {
             sessionCount = 1;
             localStorage.setItem('sessionCount', sessionCount);
             this.displaySessionCount();
-            //startAudio.play();
+            startAudio.play();
           }
           timer = setInterval(function() {
             _this.stepDown();
@@ -222,7 +223,7 @@ $(function() {
               localStorage.setItem('startTime', startTime);
               localStorage.setItem('type', type);
               this.displaySessionCount();
-              //endAudio.play();
+              endAudio.play();
             } else {
               sessionCount ++;              
               currentTime = sessionTime;
@@ -233,7 +234,7 @@ $(function() {
               localStorage.setItem('startTime', startTime);
               localStorage.setItem('type', type);
               this.displaySessionCount();
-              //startAudio.play();
+              startAudio.play();
             }
           }
         }
