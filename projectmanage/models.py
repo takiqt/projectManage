@@ -205,6 +205,20 @@ class UserMessage(db.Model):
         return count
 
     @staticmethod
+    def isVisibleByUser(self, userId):
+        """ Felhasználó láthatja-e az üzenetet
+        
+        Arguments:
+            userId {[int]} -- Felhasználó azonosító
+                    
+        Returns:
+            bool
+        """
+        if userId == self.toUserId or userId == self.fromUserId:
+            return True
+        return False
+
+    @staticmethod
     def setRead(messageId):
         """[Üzenet olvasottra állíása]
         
@@ -319,14 +333,14 @@ class ProjectJob(db.Model):
     delTime = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f'Projekt feladat: {self.name} (#{self.id}) - projekt: #{self.projectId}'
+        return f'Projekt feladat: {self.name} (#{self.id})'
     
     @staticmethod
     def setDeleted(projectJobId):
-        """[Feladat töröltre állíása]
+        """Feladat töröltre állítása
         
         Arguments:
-            projectJobId {[int]} -- [Feladat azonosító]
+            projectJobId {int} -- Feladat azonosító
         """
         projectJob = ProjectJob.query.get_or_404(projectJobId)
         projectJob.deleted = True
@@ -338,10 +352,10 @@ class ProjectJob(db.Model):
         """ Feladathoz tartozó könyvelt munkaidők lekérése
         
         Arguments:
-            projectJobId {[int]} -- Feladat azonosító
+            projectJobId {int} -- Feladat azonosító
 
         Returns:
-            [flask_sqlalchemy.BaseQuery] -- Munkaidők
+            flask_sqlalchemy.BaseQuery -- Munkaidők
         """
         worktimes = ProjectJobWorktimeHistory.query.filter(
             ProjectJobWorktimeHistory.projectJobId == projectJobId

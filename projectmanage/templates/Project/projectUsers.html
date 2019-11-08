@@ -1,12 +1,12 @@
 {% extends 'layout.html' %}
 {% block body %}   
-    <div class="content-section">                    
-        <h2>
-            Projekt&nbsp;{{ menuTitle }}:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
-        </h2>
-        <hr>
-        <div class="container">
-            {% if mode == 'workers' %}
+<h3>
+    Projekt&nbsp;{{ menuTitle }}:&nbsp;{{ project.name }}&nbsp;(#{{project.id}})
+</h3>
+<div class="content-section">                    
+    <div class="container">
+        {% if mode == 'workers' %}
+            {% if project.workers.count() %}
                 {% for user in project.workers %}
                     <div class="row">
                         <div class="col-4 font-weight-bold">
@@ -23,7 +23,11 @@
                     </div>
                     <br>
                 {% endfor %}
-            {% elif mode == 'leaders' %}
+            {% else %}
+                <div class="row">Nincs rögzítve munkatárs a projekthez!</div>
+            {% endif %}
+        {% elif mode == 'leaders' %}
+            {% if project.leaders.count() %}
                 {% for user in project.leaders %}
                     <div class="row">
                         <div class="col-4 font-weight-bold">
@@ -40,36 +44,39 @@
                     </div>
                     <br>                     
                 {% endfor %}
+            {% else %}
+                <div class="row">Nincs rögzítve vezető a projekthez!</div>
             {% endif %}
-        </div>    
-        <br>
-        <hr> 
-        <form action="" method="POST">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                <div class="container">
-                    <div class="row vertical-center">
-                        <div class="col-4 font-weight-bold">
-                            {{ form.users.label(class="form-control-label") }}
-                        </div>
-                        <div class="col-8">
-                            {% if form.users.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.users.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ form.users(class="form-control") }}    
-                            {% endif %}
-                        </div>
-                    </div>                        
-                </div>                     
-            </div>           
-            <div class="form-group">
-                {{ form.save(class="btn btn-outline-info") }}
-            </div>
-        </form>
-        <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>
-    </div> 
+        {% endif %}
+    </div>    
+    <br>
+    <hr> 
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <div class="container">
+                <div class="row vertical-center">
+                    <div class="col-4 font-weight-bold">
+                        {{ form.users.label(class="form-control-label") }}
+                    </div>
+                    <div class="col-8">
+                        {% if form.users.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.users.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.users(class="form-control") }}    
+                        {% endif %}
+                    </div>
+                </div>                        
+            </div>                     
+        </div>           
+        <div class="form-group">
+            {{ form.save(class="btn btn-outline-info") }}
+            <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>
+        </div>
+    </form>
+</div> 
 {% endblock %}

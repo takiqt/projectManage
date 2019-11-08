@@ -57,7 +57,7 @@
                     Tartalom
                 </div>                    
                 <div class="col-8">
-                    {{ message.text|safe }}
+                    {{ message.text|replace('\n', '<br />')|safe }}
                 </div>
             </div>
         </fieldset>

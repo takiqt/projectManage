@@ -8,10 +8,10 @@ def load_user(userId):
     """ Felhasználó beléptetés segédfunkciója
     
     Arguments:
-        userId {[int]} -- [Felhasználó azonosító]
+        userId {int} -- Felhasználó azonosító
     
     Returns:
-        [Object] -- [User]
+        User Object
     """    
     return User.query.get(int(userId))
 
@@ -19,10 +19,10 @@ def is_safe_url(urlTarget):
     """ Valós url vizsgálat
     
     Arguments:
-        urlTarget {[string]} -- [Hívott URL]
+        urlTarget {string} -- Hívott URL
     
     Returns:
-        [bool] -- [True ha létezik, különben False]
+        bool -- True ha létezik, különben False
     """
     refUrl  = urlparse(request.host_url)
     testUrl = urlparse(urljoin(request.host_url, urlTarget))
@@ -34,10 +34,10 @@ def page_not_found(e):
     """ Error handler oldal
     
     Arguments:
-        e {[error]}
+        e {error}
     
     Returns:
-        [response]
+        response
     """
     return redirect(url_for('login'))
 
@@ -46,25 +46,28 @@ def my_utility_processor():
     """ Template segédfüggvények
 
     Returns:
-        [dict]
+        dict
     """
     def getProjectName(projectId):
         """ Projekt név lekérés
+
         Arguments:
-            projectId {[int]} -- [Projekt azonosító]
+            projectId {int} -- Projekt azonosító
 
         Returns:
-            [string] -- [Név]
+            string
         """
         project = Project.query.get_or_404(projectId)
         return project.name
+
     def getProjectStatus(projectId):
         """ Projekt státusz lekérés
+
         Arguments:
-            projectId {[int]} -- [Projekt azonosító]
+            projectId [int} -- Projekt azonosító
 
         Returns:
-            [string] -- [Név]
+            string
         """
         project = Project.query.get_or_404(projectId)
         if project.isDone == True:
@@ -74,44 +77,70 @@ def my_utility_processor():
         else:
             status = 'Folyamatban'
         return status
+
     def getProjectJobName(projectJobId):
         """ Projekt feladat név lekérés
+
         Arguments:
-            projectJobId {[int]} -- [Projekt feladat azonosító]
+            projectJobId {int} -- Projekt feladat azonosító
 
         Returns:
-            [string] -- [Név]
+            string
         """
         if projectJobId == 0:
             return 'Nincs aktív feladat kiválasztva'
         else:
             projectJob = ProjectJob.query.get_or_404(projectJobId)
             return projectJob.name
+
+    def getProjectJobStatus(projectJobId):
+        """ Projekt feladat státusz lekérés
+
+        Arguments:
+            projectJobId {int} -- Projekt feladat azonosító
+
+        Returns:
+            string
+        """
+        projectJob = ProjectJob.query.get_or_404(projectJobId)
+        if projectJob.seen == True:
+            status = 'Ellenőrizve'
+        elif projectJob.isDone == True:
+            status = 'Elkészült'
+        elif projectJob.deleted:
+            status = 'Archivált'
+        else:
+            status = 'Folyamatban'
+        return status
+
     def getUserName(userId):
         """ Felhasználó név lekérés
 
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- Felhasználó azonosító
 
         Returns:
-            [string] -- [Név]
+            string
         """
         user = User.query.get_or_404(userId)
         return user.fullName
+
     def getUnreadCount(userId):
         """ Felhasználó olvasatlan üzenetek lekérés
 
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- Felhasználó azonosító
         
         Returns:
-            [int] -- [Darabszám]
+            int -- Darabszám
         """
         return UserMessage.getUnreadCount(userId)
+
     return dict(
         getProjectName=getProjectName, 
         getProjectStatus=getProjectStatus, 
         getUserName=getUserName, 
         getUnreadCount=getUnreadCount,
         getProjectJobName=getProjectJobName,
+        getProjectJobStatus=getProjectJobStatus,
     )

@@ -502,6 +502,8 @@ def projectJobData(projectJobId):
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     project = Project.query.get_or_404(projectJob.projectId)
+    if project not in User.getUserVisibleProjects(current_user.id):
+        return redirect(url_for('projects'))
     return render_template('ProjectJob/projectJobData.html', projectJob=projectJob, project=project, activeLink='projects')
 
 @app.route('/startJob/<int:projectJobId>')
@@ -860,7 +862,7 @@ def sendMessage(targetUserId, subject):
         }
         return render_template('User/sendMessage.html', **data)
 
-@app.route('/loadMessage/<int:messageId>', defaults = { 'fromPage' : None })
+@app.route('/loadMessage/<int:messageId>', defaults = { 'fromPage' : 'index' })
 @app.route('/loadMessage/<int:messageId>/<string:fromPage>')
 @login_required
 def loadMessage(messageId, fromPage):
@@ -868,20 +870,21 @@ def loadMessage(messageId, fromPage):
     
     Arguments:
         messageId {[int]}   -- Üzenet azonosító
-        fromPage {[string]} -- Inbox / Outbox -ból nyitottuk meg
+        fromPage {[string]} -- Inbox / Outbox / Default index -ból nyitottuk meg
     
     Returns:
         [response]
     """
     message = UserMessage.query.get_or_404(messageId)
+    if not UserMessage.isVisibleByUser(message, current_user.id):
+        return redirect(url_for('index'))
 
     if message.readTime is None and message.toUserId == current_user.id:
         UserMessage.setRead(messageId)
         flash(f'Üzenet olvasottra állítva!', 'success')
 
-    message.text = message.text.replace('\n', '<br />')
     data = {
-        'message' : message,
+        'message'    : message,
         'activeLink' : fromPage,
     }
     return render_template('User/messageData.html', **data)
