@@ -19,7 +19,7 @@ def index():
     """ Dashboard megjelenítése
     
     Returns:
-        [response]
+        response
     """
     jobs = User.getProjectJobListCategories(current_user.id)
     data = {
@@ -29,7 +29,7 @@ def index():
         'doneJobs' : jobs['doneJobs'],
         'form' : AddProjectWorkTimeForm(),
     }
-    return render_template('home.html', **data)
+    return render_template('Index/home.html', **data)
 
 @app.route('/gantt')
 @login_required
@@ -37,14 +37,14 @@ def userGantt():
     """ Felhasználó Gantt megjelenítése
     
     Returns:
-        [response]
+        response
     """
     data = {
         'activeLink' : 'home',        
         'mode'       : 'user',
         'users'      : [{'id': current_user.id, 'name': current_user.fullName }],
     }
-    return render_template('gantt.html', **data)
+    return render_template('Gantt/gantt.html', **data)
 
 @app.route("/projects")
 @login_required
@@ -52,7 +52,7 @@ def projects():
     """ Projekt lista
     
     Returns:
-        [response]
+        response
     """
     if current_user.admin == True:
         projects = Project.query.order_by(Project.name).all()
@@ -71,7 +71,7 @@ def addProject():
     """ Projekt hozzáadása oldal
     
     Returns:
-        [response]
+        response
     """
     form = AddAndModifyProjectForm()
     if form.validate_on_submit() and form.dateStart.data <= form.dateEnd.data:
@@ -113,19 +113,15 @@ def projectData(projectId):
     """ Projekt adatai aloldal
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
-
-
-    project = Project.query.get_or_404(projectId)
-    # project.description = project.description.replace('\n', '<br />')
+    project = Project.query.get_or_404(projectId)    
     if current_user.admin == False and project not in User.getUserVisibleProjects(current_user.id):
         return redirect(url_for('projects'))  
       
-    sumHours = 0
     worktimesAll = []
     for job in project.projectJobs:
         worktimes = ProjectJob.getJobWorktimes(job.id)
@@ -139,12 +135,15 @@ def projectData(projectId):
                 'date' : worktime.createTime, 
                 'workTime' : worktime.workTime   
             })
-            sumHours += worktime.workTime 
     worktimesAllSorted = sorted(worktimesAll, key=lambda k: k['date']) 
+    riport = Project.getRiportData(project)
+
     data = {
         'project' : project,
         'activeLink' : 'projects',
-        'sumHours' : sumHours,
+        'sumHours' : riport['booked'],
+        'estimatedHours' : riport['estimated'],
+        'riportPercent' : riport['percent'],
         'worktimesAll' : worktimesAllSorted,
     }
     return render_template('Project/projectData.html', **data)
@@ -155,10 +154,10 @@ def projectModify(projectId):
     """ Projekt módosítás aloldal
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     if current_user.id != project.creatorUserId:
@@ -208,10 +207,10 @@ def projectClose(projectId):
     """ Projekt lezárása
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get(projectId)
     if Project.isClosable(project, current_user.id):
@@ -230,10 +229,10 @@ def projectArchive(projectId):
     """ Projekt archiválása (törlés)
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get(projectId)
     if Project.isArchivable(project, current_user.id):
@@ -252,10 +251,10 @@ def projectGantt(projectId):
     """ Projekt Gantt oldal
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId) 
     if not Project.isModifiable(project, current_user.id):
@@ -276,7 +275,7 @@ def projectGantt(projectId):
         'users'      : users,
         'canModify'  : True if current_user.id in leaders else False,
     }
-    return render_template('gantt.html', **data)
+    return render_template('Gantt/gantt.html', **data)
 
 @app.route("/projectLeaders/<int:projectId>", methods=['POST', 'GET'])
 @login_required
@@ -284,10 +283,10 @@ def projectLeaders(projectId):
     """ Vezető lista aloldal
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     if current_user.id != project.creatorUserId:
@@ -316,10 +315,10 @@ def projectWorkers(projectId):
     """ Munkatárs lista aloldal
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     if current_user.id != project.creatorUserId:
@@ -348,10 +347,10 @@ def deleteProjectLeader(projectId):
     """ Vezető törlése a projektből
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     
@@ -371,10 +370,10 @@ def deleteProjectWorker(projectId):
     """ Munkatárs törlése a projektből
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     if current_user == project.creator:
@@ -393,10 +392,10 @@ def addProjectJob(projectId):
     """ Projekt feladat felvitele
     
     Arguments:
-        projectId {[int]} -- Projekt azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get_or_404(projectId)
     if current_user not in project.leaders:
@@ -441,10 +440,10 @@ def projectJobModify(projectJobId):
     """ Projekt feladat módosítás
     
     Arguments:
-        projectJobId {[int]} -- Projekt feladat azonosító
+        projectJobId {int} -- Projekt feladat azonosító
     
     Returns:
-        [response]
+        response
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     form = AddAndModifyProjectJobForm()
@@ -495,10 +494,10 @@ def projectJobData(projectJobId):
     """ Projekt feladat adatlap
     
     Arguments:
-        projectJobId {[int]} -- Projekt feladat azonosító
+        projectJobId {int} -- Projekt feladat azonosító
     
     Returns:
-        [response]
+        response
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     project = Project.query.get_or_404(projectJob.projectId)
@@ -512,10 +511,10 @@ def startJob(projectJobId):
     """ Projekt feladat levétele
     
     Arguments:
-        projectJobId {[int]} -- Projekt feladat azonosító
+        projectJobId {int} -- Projekt feladat azonosító
     
     Returns:
-        [response]
+        response
     """
     current_user.activeJobId = projectJobId
     db.session.commit()
@@ -527,10 +526,10 @@ def manageJob(projectJobId):
     """ Projekt feladat állapot változatás
     
     Arguments:
-        projectJobId {[int]} -- Projekt feladat azonosító
+        projectJobId {int} -- Projekt feladat azonosító
     
     Returns:
-        [response]
+        response
     """
     comment = request.form.get('comment')
     workTimeString = request.form.get('workTime')
@@ -568,11 +567,11 @@ def projectJobCheckDone(projectJobId, projectId):
     """ Elkészült Projekt feladat ellenőrzése
     
     Arguments:
-        projectJobId {[int]} -- Projekt feladat azonosító
-        projectId {[int]} -- Projekt azonosító
+        projectJobId {int} -- Projekt feladat azonosító
+        projectId {int} -- Projekt azonosító
     
     Returns:
-        [response]
+        response
     """
     project = Project.query.get(projectId)
     projectJob = ProjectJob.query.get(projectJobId)
@@ -595,7 +594,7 @@ def register():
     """ Felhasználó felvitele
     
     Returns:
-        [response]
+        response
     """
     if current_user.admin != True:
         return redirect(url_for('index'))
@@ -608,7 +607,7 @@ def register():
                 'form' : form,
                 'activeLink' : 'users',  
             }              
-            return render_template('register.html', **data)
+            return render_template('User/register.html', **data)
         else:
             hashedPassword = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             userData = {
@@ -627,7 +626,7 @@ def register():
             'form' : form,    
             'activeLink' : 'users',
         }
-        return render_template('register.html', **data)
+        return render_template('User/register.html', **data)
 
 @app.route('/passiveUser/<int:userId>')
 @login_required
@@ -635,10 +634,10 @@ def passiveUser(userId):
     """ Felhasználó passziválása
     
     Arguments:
-        userId {[int]} -- Felhasználó azonosító
+        userId {int} -- Felhasználó azonosító
     
     Returns:
-        [response]
+        response
     """
     if current_user.admin != True:
         return redirect(url_for('index'))
@@ -659,7 +658,7 @@ def login():
     """ Bejelentkezés 
 
     Returns:
-        [response]
+        response
     """
     form = LoginForm()
     if form.validate_on_submit():
@@ -690,7 +689,7 @@ def login():
         data = {
             'form' : form,             
         }
-        return render_template('login.html', **data)
+        return render_template('Index/login.html', **data)
 
 @app.route("/logout")
 @login_required
@@ -698,7 +697,7 @@ def logout():
     """ Kijelentkezés 
     
     Returns:
-        [response]
+        response
     """
     logout_user()
     return redirect(url_for('index'))
@@ -709,7 +708,7 @@ def users():
     """ Felhasználó lista oldal
     
     Returns:
-        [response]
+        response
     """
     users = User.query.filter(User.deleted == False).order_by(User.fullName).all()
     if current_user.admin == True:
@@ -729,10 +728,10 @@ def userData(userId):
     """ Felhasználó adatlap megtekintése
     
     Arguments:
-        userId {[int]} -- Felhasználó azonosító
+        userId {int} -- Felhasználó azonosító
     
     Returns:
-        [response]
+        response
     """    
     user = User.query.get_or_404(userId)    
     jobs = User.getProjectJobListCategories(userId)
@@ -745,13 +744,41 @@ def userData(userId):
     }
     return render_template('User/userData.html', **data)
 
+@app.route('/userRiport/<int:userId>')
+@login_required
+def userRiport(userId):
+    """ Felhasználó riport megtekintése
+    
+    Arguments:
+        userId {int} -- Felhasználó azonosító
+    
+    Returns:
+        response
+    """    
+    user = User.query.get_or_404(userId)    
+    creatorRiport = User.getJobCreatorRiportData(user)
+    workerRiport  = User.getJobWorkerRiportData(user)
+    data = {
+        'user' : user,
+        'createdCount' : creatorRiport['jobCount'],        
+        'creatorRiportEstimated': creatorRiport['estimated'],
+        'creatorRiportBooked': creatorRiport['booked'],
+        'creatorRiportPercent': creatorRiport['percent'],
+        'workerCount'  : workerRiport['jobCount'],
+        'workerRiportEstimated': workerRiport['estimated'],
+        'workerRiportBooked': workerRiport['booked'],
+        'workerRiportPercent': workerRiport['percent'],
+        'activeLink' : 'users',
+    }
+    return render_template('User/userRiport.html', **data)
+
 @app.route('/account', methods=['POST', 'GET'])
 @login_required
 def account():
     """ Adataim menüpont
     
     Returns:
-        [response]
+        response
     """
     form = ModifyAccountBaseDataForm()
     user = User.query.get_or_404(current_user.id)
@@ -796,7 +823,7 @@ def changePassword():
     """ Jelszó módosítás
     
     Returns:
-        [response]
+        response
     """
     form = ModifyAccountPasswordForm()
     if form.validate_on_submit():
@@ -827,11 +854,11 @@ def sendMessage(targetUserId, subject):
     """ Üzenet küldés
     
     Arguments:
-        targetUserId {[int]} -- Címzett felhasználó azonosító
-        subject {[string]}   -- Tárgy
+        targetUserId {int} -- Címzett felhasználó azonosító
+        subject {string}   -- Tárgy
     
     Returns:
-        [response]
+        response
     """ 
     form = SendMessageForm()    
     form.toUserId.query = User.query.filter(and_(
@@ -869,11 +896,11 @@ def loadMessage(messageId, fromPage):
     """ Üzenet betöltés
     
     Arguments:
-        messageId {[int]}   -- Üzenet azonosító
-        fromPage {[string]} -- Inbox / Outbox / Default index -ból nyitottuk meg
+        messageId {int}   -- Üzenet azonosító
+        fromPage {string} -- Inbox / Outbox / Default index -ból nyitottuk meg
     
     Returns:
-        [response]
+        response
     """
     message = UserMessage.query.get_or_404(messageId)
     if not UserMessage.isVisibleByUser(message, current_user.id):
@@ -895,7 +922,7 @@ def inbox():
     """ Bejővő Üzenetek
     
     Returns:
-        [response]
+        response
     """
     messages = UserMessage.getRecievedMessages(current_user.id)
     data = {
@@ -910,7 +937,7 @@ def sent():
     """ Kimenő Üzenetek
     
     Returns:
-        [response]
+        response
     """
     messages = UserMessage.getSentMessages(current_user.id) 
     data = {

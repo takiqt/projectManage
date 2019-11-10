@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>
+        Felhasználó riport: {{ user.fullName }}
+    </h3>
+    <div class="content-section">
+        <fieldset class="form-group"> 
+            <div class="container">               
+                <h3>Feladat végző metrika</h3>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok száma
+                    </div>                    
+                    <div class="col-6">
+                        {{ workerCount }}&nbsp;db
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok becsült ideje
+                    </div>                    
+                    <div class="col-6">
+                        {{ workerRiportEstimated }}&nbsp;óra
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok becsült ideje
+                    </div>                    
+                    <div class="col-6">
+                        {{ workerRiportBooked }}&nbsp;óra
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok eredménye
+                    </div>                    
+                    <div class="col-6">
+                        {{ workerRiportPercent }}&nbsp;%
+                    </div>
+                </div>                 
+                <hr>
+                <h3>Feladat kiíró metrika</h3>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok száma
+                    </div>                    
+                    <div class="col-6">
+                        {{ createdCount }}&nbsp;db
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok becsült ideje
+                    </div>                    
+                    <div class="col-6">
+                        {{ creatorRiportEstimated }}&nbsp;óra
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok könyvelt ideje
+                    </div>                    
+                    <div class="col-6">
+                        {{ creatorRiportBooked }}&nbsp;óra
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">
+                        Létrehozott feladatok eredménye
+                    </div>                    
+                    <div class="col-6">
+                        {{ creatorRiportPercent }}&nbsp;%
+                    </div>
+                </div>                 
+            </div>
+        </fieldset>
+        <a href="{{ url_for('users') }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     
+    </div>
+{% endblock body %}

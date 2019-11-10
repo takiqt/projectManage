@@ -14,6 +14,7 @@
             <th scope="col">Név</th>            
             <th scope="col">E-mail cím</th>
             <th scope="col">Adatok</th>
+            <th scope="col">Riport</th>
             <th scope="col">Üzenet</th>
             {% if current_user.admin %}
                 <th scope="col">Passziválás</th>
@@ -36,6 +37,9 @@
                 {% else %}
                     <a href="{{ url_for('account') }}" class="btn btn-outline-info"><i class="fa fa-user"></i>&nbsp;Adataim</a>
                 {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('userRiport', userId=user.id) }}" class="btn btn-outline-info"><i class="fa fa-list-alt"></i>&nbsp;Riport</a>
             </td>
             <td>
                 {% if user != current_user %}

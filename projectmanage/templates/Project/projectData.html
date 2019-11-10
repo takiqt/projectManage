@@ -35,15 +35,6 @@
                     <div class="col-8">
                         {{ project.dateEnd.strftime('%Y-%m-%d') }}
                     </div>
-                </div>     
-                <hr> 
-                <div class="row">
-                    <div class="col-4 font-weight-bold">
-                        Összes könyvelt munkaidő
-                    </div>                
-                    <div class="col-8">
-                        {{ sumHours }} óra
-                    </div>
                 </div>
                 <div class="row">
                     <div class="col-4 font-weight-bold">
@@ -52,8 +43,37 @@
                     <div class="col-8">
                         {{ getProjectStatus(project.id) }}
                     </div>
-                </div>
+                </div>     
                 <hr>
+                {% if current_user == project.creator  or current_user in project.leaders %}
+                    <h3>Riport</h3> 
+                    <hr>
+                    <div class="row">
+                        <div class="col-4 font-weight-bold">
+                            Összes becsült munkaidő
+                        </div>                
+                        <div class="col-8">
+                            {{ estimatedHours }} óra
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 font-weight-bold">
+                            Összes könyvelt munkaidő
+                        </div>                
+                        <div class="col-8">
+                            {{ sumHours }} óra
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 font-weight-bold">
+                            Projekt százalékos eredménye
+                        </div>                
+                        <div class="col-8">
+                            {{ riportPercent }} %
+                        </div>
+                    </div>               
+                    <hr>
+                {% endif %}
                 <div class="row">   
                     <div class="col-4 font-weight-bold">
                         Vezetők

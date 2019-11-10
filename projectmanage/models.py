@@ -121,6 +121,58 @@ class User(UserMixin, db.Model):
             
         return True
 
+    @staticmethod
+    def getJobWorkerRiportData(self):
+        """ User feladat végző riport
+        
+        Returns:
+            list
+        """
+        riport = {}
+        sumEstimatedTime = sumBookedTime = jobCount = 0
+        for projectJob in self.projectJobsWork:
+            sumEstimatedTime += projectJob.estimatedTime            
+            sumBookedTime += ProjectJob.getJobWorktimesByUser(projectJob.id, self.id)
+            jobCount += 1
+
+        if sumEstimatedTime != 0:
+            percent = sumBookedTime / sumEstimatedTime * 100
+        else:
+            percent = 0
+
+        riport['estimated'] = round(sumEstimatedTime, 2)
+        riport['booked']    = round(sumBookedTime, 2) 
+        riport['percent']   = round(percent, 2)       
+        riport['jobCount']  = jobCount
+
+        return riport
+
+    @staticmethod
+    def getJobCreatorRiportData(self):
+        """ User feladat kiíró riport
+        
+        Returns:
+            list
+        """
+        riport = {}
+        sumEstimatedTime = sumBookedTime = jobCount = 0
+        for projectJob in self.projectJobsCreated:
+            sumEstimatedTime += projectJob.estimatedTime            
+            sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
+            jobCount += 1
+
+        if sumEstimatedTime != 0:
+            percent = sumBookedTime / sumEstimatedTime * 100
+        else:
+            percent = 0
+
+        riport['estimated'] = round(sumEstimatedTime, 2)
+        riport['booked']    = round(sumBookedTime, 2)
+        riport['percent']   = round(percent, 2)   
+        riport['jobCount']  = jobCount
+
+        return riport
+
     @property
     def serialize(self):
         """ Objektum serializálása
@@ -312,6 +364,30 @@ class Project(db.Model):
         if self.creatorUserId == userId:     
             return True
 
+    @staticmethod
+    def getRiportData(self):
+        """ Projekt riport adatok összegyüjtése
+         
+        Returns:
+            list
+        """
+        riport = {}
+        sumEstimatedTime = sumBookedTime = 0
+        for projectJob in self.projectJobs:
+            sumEstimatedTime += projectJob.estimatedTime            
+            sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
+
+        if sumEstimatedTime != 0:
+            percent = sumBookedTime / sumEstimatedTime * 100
+        else:
+            percent = 0
+
+        riport['estimated'] = round(sumEstimatedTime, 2)
+        riport['booked']    = round(sumBookedTime, 2)  
+        riport['percent']   = round(percent, 2)  
+
+        return riport
+
 class ProjectJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     projectId = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
@@ -361,6 +437,37 @@ class ProjectJob(db.Model):
             ProjectJobWorktimeHistory.projectJobId == projectJobId
         ).order_by(ProjectJobWorktimeHistory.createTime.desc())
         return worktimes
+
+    @staticmethod
+    def getJobWorktimesAll(projectJobId):
+        """ Feladathoz tartozó szumma könyvelt munkaidő lekérése
+        
+        Arguments:
+            projectJobId {int} -- Feladat azonosító
+
+        Returns:
+            float
+        """
+        sql = text('select SUM(`workTime`) AS `sum` from `project_job_worktime_history` WHERE `projectJobId` = :projectJobId')
+        result = db.engine.execute(sql, { 'projectJobId' : projectJobId })
+        res = result.fetchone()                
+        return res['sum'] if res['sum'] is not None else 0
+
+    @staticmethod
+    def getJobWorktimesByUser(projectJobId, userId):
+        """ Feladathoz tartozó szumma könyvelt munkaidő lekérése adott felhasználóhoz
+        
+        Arguments:
+            projectJobId {int} -- Feladat azonosító
+            userId {int} -- Felhasználó azonosító
+
+        Returns:
+            float
+        """
+        sql = text('select SUM(`workTime`) AS `sum` from `project_job_worktime_history` WHERE `projectJobId` = :projectJobId and `createUserId` = :userId')
+        result = db.engine.execute(sql, { 'projectJobId' : projectJobId, 'userId' : userId })
+        res = result.fetchone()                
+        return res['sum'] if res['sum'] is not None else 0
 
     @property
     def serialize(self):
