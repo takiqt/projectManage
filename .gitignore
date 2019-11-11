@@ -8,6 +8,7 @@ config.py
 info.txt
 charts.pdf
 pm.db
+project.db
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

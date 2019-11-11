@@ -29,18 +29,26 @@
                 <div class="card-body">
                   <h6 class="card-title">{{ projectJob.name }}</h6>
                   <p class="card-text">
-                      {{ getProjectName(projectJob.projectId) }}
-                  </p>
-                  <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Adatlap megnyitása">
-                      <i class="fa fa-folder"></i>
-                  </a>
+                    <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn-outline-info" title="Adatlap megnyitása">
+                        {{ getProjectName(projectJob.projectId) }}
+                    </a>
+                  </p>                  
                   {% if activeJob %}                    
                     <a class="btn btn-danger" title="Nem vehető le, van aktív feladat!">
+                        &nbsp;<i class="fa fa-exclamation"></i>&nbsp;
+                    </a>
+                  {% elif projectJob.hasSubJob %}
+                    <a class="btn btn-danger" title="Nem vehető le, van alfeladata!">
                         &nbsp;<i class="fa fa-exclamation"></i>&nbsp;
                     </a>
                   {% else %}
                     <a href="{{ url_for('startJob', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Feladat levétele">
                         <i class="fa fa-arrow-down"></i>&nbsp;Levesz
+                    </a>
+                  {% endif %}
+                  {% if projectJob.canCreateSubJob %}
+                    <a href="{{ url_for('projectJobCreateSubJob', parentJobId=projectJob.id) }}" class="btn btn-outline-info" title="Alfeladat létrehozása">
+                        <i class="fa fa-plus"></i>&nbsp;Alfeladat
                     </a>
                   {% endif %}
                 </div>

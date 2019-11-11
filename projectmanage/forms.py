@@ -1,13 +1,14 @@
 from flask_wtf import FlaskForm
-from wtforms import Form, StringField, FloatField, DateField, TimeField, IntegerField, SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
+from wtforms import Form, StringField, FloatField, DateField, TimeField, IntegerField, \
+                    SelectField, TextAreaField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
-class RegisterFrom(FlaskForm):
+class RegisterForm(FlaskForm):
     """ Felhasználó felvitel Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     userName = StringField('Felhasználó név', 
                 validators=[
@@ -41,7 +42,7 @@ class LoginForm(FlaskForm):
     """ Bejelentkezés Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     userName = StringField('Felhasználó név', 
                             validators=[DataRequired()])    
@@ -54,7 +55,7 @@ class SendMessageForm(FlaskForm):
     """ Üzenet küldés Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     toUserId = QuerySelectField('Címzett', allow_blank=False, get_label='fullName')
     subject = StringField('Tárgy', validators=[
@@ -68,7 +69,7 @@ class ModifyAccountBaseDataForm(FlaskForm):
     """ Adataim módosítása Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     userName = StringField('Felhasználó név', 
                 validators=[
@@ -86,7 +87,7 @@ class ModifyAccountPasswordForm(FlaskForm):
     """ Jelszó módosítása Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     passwordOld = PasswordField('Aktuális Jelszó', 
                 validators=[
@@ -109,7 +110,7 @@ class AddAndModifyProjectForm(FlaskForm):
     """ Projekt felvitel Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     name = StringField('Projekt név', 
                 validators=[
@@ -126,7 +127,7 @@ class AddProjectWorker(FlaskForm):
     """ Projekt munkatárs felvitel Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
     save = SubmitField('Felvitel')
@@ -135,16 +136,16 @@ class AddProjectLeader(FlaskForm):
     """ Projekt vezető felvitel Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     users = QuerySelectField('Felhasználó hozzáadása', allow_blank=False, get_label='fullName')
     save = SubmitField('Felvitel')
 
 class AddAndModifyProjectJobForm(FlaskForm):
-    """ Projekt feladat felvitel Form adatok
+    """ Projekt feladat felvitel / módosítás Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     name = StringField('Feladat név', 
                 validators=[
@@ -152,7 +153,7 @@ class AddAndModifyProjectJobForm(FlaskForm):
                     Length(min=5, max=30, message="Mező hosszának 5 és 30 karakter között kell lennie!")
                 ]) 
     description = TextAreaField('Leírás', validators=[DataRequired(message="Megadása kötelező!")])
-    users = QuerySelectField('Felhasználó', allow_blank=False, get_label='fullName')
+    users = SelectField('Felhasználó', coerce=int)
     date = DateField('Dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
     start = TimeField('Kezdés', validators=[DataRequired(message="Megadása kötelező!")])
     duration = IntegerField('Hossz', validators=[
@@ -166,11 +167,31 @@ class AddAndModifyProjectJobForm(FlaskForm):
     save = SubmitField('Felvitel')
     modify = SubmitField('Módosítás')
 
+class AddAndModifyProjectJobSubJob(FlaskForm):
+    """ Projekt alfeladat felvitel / módosítás Form adatok
+    
+    Arguments:
+        FlaskForm {Object} -- FlaskForm ősosztály
+    """
+    name = StringField('Feladat név', 
+            validators=[
+                DataRequired(message="Megadása kötelező!"), 
+                Length(min=5, max=30, message="Mező hosszának 5 és 30 karakter között kell lennie!")
+            ])    
+    description = TextAreaField('Leírás', validators=[DataRequired(message="Megadása kötelező!")])
+    date = DateField('Dátum', format='%Y-%m-%d', validators=[DataRequired(message="Megadása kötelező!")])
+    start = TimeField('Kezdés', validators=[DataRequired(message="Megadása kötelező!")])
+    duration = IntegerField('Hossz', validators=[
+        DataRequired(message="Megadása kötelező!"),
+        NumberRange(min=1, message="Minimum 1-nek kell lennie!")
+        ])
+    save = SubmitField('Felvitel')
+
 class AddProjectWorkTimeForm(FlaskForm):
     """ Projekt feladat, munkaidő felvitel Form adatok
     
     Arguments:
-        FlaskForm {[Object]} -- FlaskForm ősosztály
+        FlaskForm {Object} -- FlaskForm ősosztály
     """
     workTime = FloatField('Munkaidő', validators=[DataRequired(message="Megadása kötelező!")])
     comment = TextAreaField('Megjegyzés', validators=[DataRequired(message="Megadása kötelező!")])

@@ -117,7 +117,7 @@
             {name: "start_date", align: 'center', label: 'Kezdés', width: '*', resize: true},
             {name: "end_date",   align: 'center', label: 'Végzés', width: '*', resize: true},
             {name: "duration",   align: 'center', label: 'Hossz (óra)', width: '*', resize: true},
-            {% if mode == 'project' and canModify == true %}
+            {% if mode == 'project' and canAdd == true %}
                 {name: 'add', align: 'center'}
             {% endif %}
         ];

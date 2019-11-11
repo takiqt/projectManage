@@ -3,9 +3,12 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
 from projectmanage.models import User, Project, ProjectJob, ProjectJobLink, ProjectJobWorktimeHistory, UserMessage
-from projectmanage.forms import *
-from projectmanage.functions import *
-from projectmanage.api import *
+from projectmanage.forms import RegisterForm, LoginForm, SendMessageForm, ModifyAccountBaseDataForm, \
+                                ModifyAccountPasswordForm, AddAndModifyProjectForm, AddProjectWorker, AddProjectLeader, \
+                                AddAndModifyProjectJobForm, AddAndModifyProjectJobSubJob, AddProjectWorkTimeForm
+from projectmanage.functions import load_user, page_not_found, is_safe_url, my_utility_processor
+from projectmanage.api import userJobsAll, projectJobsAll, jobAddFromChart, jobManageFromChart, \
+                              linkAddFromChart, linkManageFromChart
 from datetime import datetime, timedelta
 import pprint
 
@@ -22,10 +25,16 @@ def index():
         response
     """
     jobs = User.getProjectJobListCategories(current_user.id)
+    pendingJobs = []
+    for job in jobs['pendingJobs']:
+        job.hasSubJob = ProjectJob.hasSubJob(job)
+        job.canCreateSubJob = ProjectJob.canCreateSubJob(job, current_user.id)
+        pendingJobs.append(job)
+
     data = {
         'activeLink' : 'home',
         'activeJob' : jobs['activeJob'],
-        'pendingJobs' : jobs['pendingJobs'],
+        'pendingJobs' : pendingJobs,
         'doneJobs' : jobs['doneJobs'],
         'form' : AddProjectWorkTimeForm(),
     }
@@ -51,7 +60,7 @@ def userGantt():
 def projects():
     """ Projekt lista
     
-    Returns:
+    Returns:0
         response
     """
     if current_user.admin == True:
@@ -118,7 +127,8 @@ def projectData(projectId):
     Returns:
         response
     """
-    project = Project.query.get_or_404(projectId)    
+    project = Project.query.get_or_404(projectId)  
+    project.isModifiable = Project.isModifiable(project, current_user.id)  
     if current_user.admin == False and project not in User.getUserVisibleProjects(current_user.id):
         return redirect(url_for('projects'))  
       
@@ -134,7 +144,8 @@ def projectData(projectId):
                 'userName' :userName, 
                 'date' : worktime.createTime, 
                 'workTime' : worktime.workTime   
-            })
+            })        
+        job.isModifiable = ProjectJob.isModifiable(job, current_user.id)
     worktimesAllSorted = sorted(worktimesAll, key=lambda k: k['date']) 
     riport = Project.getRiportData(project)
 
@@ -257,23 +268,17 @@ def projectGantt(projectId):
         response
     """
     project = Project.query.get_or_404(projectId) 
-    if not Project.isModifiable(project, current_user.id):
+    if not project in User.getUserVisibleProjects(current_user.id) or not Project.isActive(project):
         return redirect(url_for('projectData', projectId=projectId))
-    usersAll = []
-    leaders  = [project.creatorUserId]
-    for user in project.workers:
-        usersAll.append({'id': user.id, 'name': user.fullName})
-    for user in project.leaders:
-        usersAll.append({'id': user.id, 'name': user.fullName})  
-        leaders.append(user.id)  
-    users = list({u['id']:u for u in usersAll}.values())
+ 
+    users = Project.getProjectUsers(project)
     
     data = {
         'activeLink' : 'projects',
         'mode'       : 'project',
         'project'    : project,
         'users'      : users,
-        'canModify'  : True if current_user.id in leaders else False,
+        'canAdd'     : True if current_user in project.leaders else False,
     }
     return render_template('Gantt/gantt.html', **data)
 
@@ -289,8 +294,9 @@ def projectLeaders(projectId):
         response
     """
     project = Project.query.get_or_404(projectId)
-    if current_user.id != project.creatorUserId:
-        return redirect(url_for('index'))
+    if current_user.id != project.creatorUserId or not Project.isModifiable(project, current_user.id):
+        flash(f'Projekt nem módosítható', 'danger')
+        return redirect(url_for('projectData', projectId=projectId))
     form = AddProjectLeader()
     form.users.query = User.query.filter(User.deleted == False).order_by(User.fullName).all()
 
@@ -321,8 +327,10 @@ def projectWorkers(projectId):
         response
     """
     project = Project.query.get_or_404(projectId)
-    if current_user.id != project.creatorUserId:
-        return redirect(url_for('index'))
+    if current_user.id != project.creatorUserId or not Project.isModifiable(project, current_user.id):
+        flash(f'Projekt nem módosítható', 'danger')
+        return redirect(url_for('projectData', projectId=projectId))   
+
     form = AddProjectWorker()
     form.users.query = User.query.filter(User.deleted == False).order_by(User.fullName).all()
     
@@ -352,15 +360,17 @@ def deleteProjectLeader(projectId):
     Returns:
         response
     """
-    project = Project.query.get_or_404(projectId)
-    
-    if current_user == project.creator:
+    project = Project.query.get_or_404(projectId)    
+    if current_user == project.creator and Project.isModifiable(project, current_user.id):
         userId = request.form.get('delUserId')
         user = User.query.filter_by(id=userId).first()
         if user is not None:
             project.leaders.remove(user)
             db.session.commit() 
             flash(f'Vezető törölve!', 'success')
+    else:
+        flash(f'Projekt nem módosítható', 'danger')
+        return redirect(url_for('projectData', projectId=projectId))
         
     return redirect(url_for('projectLeaders', projectId=project.id))
 
@@ -376,13 +386,16 @@ def deleteProjectWorker(projectId):
         response
     """
     project = Project.query.get_or_404(projectId)
-    if current_user == project.creator:
+    if current_user == project.creator and Project.isModifiable(project, current_user.id):
         userId = request.form.get('delUserId')
         user = User.query.filter_by(id=userId).first()
         if user is not None:
             project.workers.remove(user)
             db.session.commit() 
             flash(f'Munkatárs törölve!', 'success')
+    else:
+        flash(f'Projekt nem módosítható', 'danger')
+        return redirect(url_for('projectData', projectId=projectId))
         
     return redirect(url_for('projectWorkers', projectId=project.id))
 
@@ -401,7 +414,13 @@ def addProjectJob(projectId):
     if current_user not in project.leaders:
         return redirect(url_for('projects'))
     form = AddAndModifyProjectJobForm()
-    form.users.query = User.query.order_by(User.fullName).all()    
+    projectUsers = Project.getProjectUsers(project)
+    projectUserChoices = []
+    for u in projectUsers:
+        uc = (u['id'], u['name'])
+        projectUserChoices.append(uc)
+
+    form.users.choices = projectUserChoices
     if form.validate_on_submit():
         date = form.date.data
         start = form.start.data
@@ -417,7 +436,7 @@ def addProjectJob(projectId):
             'estimatedTime' : form.estimatedTime.data,
             'duration' : duration,
             'creatorUserId' : current_user.id,
-            'workerUserId' : form.users.data.id,
+            'workerUserId' : form.users.data,
             'projectId' : projectId,            
         }
         projectJob = ProjectJob(**projectJobData)
@@ -446,9 +465,18 @@ def projectJobModify(projectJobId):
         response
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
+    project    = Project.query.get_or_404(projectJob.projectId)
     form = AddAndModifyProjectJobForm()
-    form.users.query = User.query.order_by(User.fullName).all()
-    if current_user.id != projectJob.creatorUserId:
+    projectUsers = Project.getProjectUsers(project)
+    projectUserChoices = []
+    for u in projectUsers:
+        uc = (u['id'], u['name'])
+        projectUserChoices.append(uc)
+
+    form.users.choices = projectUserChoices
+
+    if current_user.id != projectJob.creatorUserId or not ProjectJob.isActive(projectJob):
+        flash(f'Projekt feladat nem módosítható!', 'danger')
         return redirect(url_for('index'))
     if form.validate_on_submit():        
         date = form.date.data
@@ -463,7 +491,7 @@ def projectJobModify(projectJobId):
         projectJob.dateEnd = dateEnd
         projectJob.estimatedTime = form.estimatedTime.data
         projectJob.duration = duration
-        projectJob.workerUserId =  form.users.data.id
+        projectJob.workerUserId =  form.users.data
 
         db.session.add(projectJob)
         db.session.commit()
@@ -503,7 +531,13 @@ def projectJobData(projectJobId):
     project = Project.query.get_or_404(projectJob.projectId)
     if project not in User.getUserVisibleProjects(current_user.id):
         return redirect(url_for('projects'))
-    return render_template('ProjectJob/projectJobData.html', projectJob=projectJob, project=project, activeLink='projects')
+    data = {
+        'projectJob' : projectJob,
+        'project' : project,
+        'sumHours' : ProjectJob.getJobWorktimesAll(projectJob.id),
+        'activeLink' : 'projects', 
+    }
+    return render_template('ProjectJob/projectJobData.html', **data)
 
 @app.route('/startJob/<int:projectJobId>')
 @login_required
@@ -516,11 +550,16 @@ def startJob(projectJobId):
     Returns:
         response
     """
-    current_user.activeJobId = projectJobId
-    db.session.commit()
+    projectJob = ProjectJob.query.get_or_404(projectJobId)
+    if ProjectJob.isModifiable(projectJob, current_user.id):
+        current_user.activeJobId = projectJobId
+        db.session.commit()
+    else:
+        flash(f'Feladat nem vehető le!', 'danger')
+
     return redirect(url_for('index'))
 
-@app.route('/manageJob/<int:projectJobId>', methods=['POST'])
+@app.route('/manageJob/<int:projectJobId>', methods=['POST', 'GET'])
 @login_required
 def manageJob(projectJobId):
     """ Projekt feladat állapot változatás
@@ -531,6 +570,10 @@ def manageJob(projectJobId):
     Returns:
         response
     """
+    projectJob = ProjectJob.query.get_or_404(projectJobId)
+    if not ProjectJob.isModifiable(projectJob, current_user.id) or request.method == 'GET':
+        flash(f'Feladat nem módosítható!', 'danger')
+        return redirect(url_for('index'))
     comment = request.form.get('comment')
     workTimeString = request.form.get('workTime')
     workTime = float(workTimeString.replace(',', '.'))
@@ -548,9 +591,8 @@ def manageJob(projectJobId):
         db.session.add(projectJobWorktimeHistory)
         current_user.activeJobId = 0
         if done is not None:
-            projectJob = ProjectJob.query.get_or_404(projectJobId)
-            projectJob.isDone = True
-            projectJob.doneTime = datetime.now()
+            projectJob = ProjectJob.query.get_or_404(projectJobId)            
+            ProjectJob.setDone(projectJob.id)
             flash(f'Feladat elkészült!', 'success')
         elif pending is not None:
             flash(f'Feladat várakozó állapotra állítva!', 'success')
@@ -585,6 +627,72 @@ def projectJobCheckDone(projectJobId, projectId):
         flash(f'Sikertelen ellenőrzés!', 'danger')
     return redirect(url_for('projectData', projectId=projectId))
 
+@app.route('/createSubJob/<int:parentJobId>', methods=['POST', 'GET'])
+@login_required
+def projectJobCreateSubJob(parentJobId):
+    """ Várakozó elvégzendő feladathoz alfeladat felvitele
+    
+    Arguments:
+        parentJobId {int} -- Szülő Projekt feladat azonosító
+    
+    Returns:
+        response
+    """
+    form = AddAndModifyProjectJobSubJob()
+    parentJob = ProjectJob.query.get_or_404(parentJobId)
+    if not ProjectJob.canCreateSubJob(parentJob, current_user.id):
+        flash(f'Feladathoz nem lehet alfeladatot rögzíteni!', 'danger')
+        return redirect(url_for('index'))
+    project   = Project.query.get_or_404(parentJob.projectId)
+
+    if project not in User.getUserVisibleProjects(current_user.id):
+        flash(f'Feladathoz nem lehet alfeladatot rögzíteni!', 'danger')
+        return redirect(url_for('index'))
+
+    if form.validate_on_submit():
+        date = form.date.data
+        start = form.start.data
+        duration = form.duration.data
+        dateStart = datetime.combine(date, start)
+        dateEnd = dateStart + timedelta(hours=duration)
+        
+        projectJobData = {
+            'name' : form.name.data,
+            'description' : form.description.data,            
+            'dateStart' : dateStart,
+            'dateEnd' : dateEnd,
+            'estimatedTime' : 0,
+            'duration' : duration,
+            'creatorUserId' : current_user.id,
+            'workerUserId' : current_user.id,
+            'projectId' : project.id,            
+            'parentJobId' : parentJob.id,            
+        }
+        projectJob = ProjectJob(**projectJobData)
+
+        db.session.add(projectJob)
+        db.session.commit()
+
+        jobLinkData = {
+            'source' : projectJob.id,
+            'target' : parentJob.id,
+            'type'   : '2', # finish_to_finish
+        }
+        link = ProjectJobLink(**jobLinkData)
+        
+        db.session.add(link)
+        db.session.commit()
+
+        flash(f'Sikeres alfeladat felvitel!', 'success')
+        return redirect(url_for('index'))
+    else:
+        data = {
+            'form' : form,
+            'parentJob' : str(parentJob),
+            'activeLink' : 'projects',
+        }
+        return render_template('ProjectJob/addProjectJobSubJob.html', **data)
+
 # ----
 # Felhasználókra vonatkozó URL-k
 # ----
@@ -598,7 +706,7 @@ def register():
     """
     if current_user.admin != True:
         return redirect(url_for('index'))
-    form = RegisterFrom()
+    form = RegisterForm()
     if form.validate_on_submit():
         oldUser = User.query.filter(or_(User.userName == form.userName.data, User.email == form.email.data)).first()
         if oldUser is not None:

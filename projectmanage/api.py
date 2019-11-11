@@ -29,20 +29,11 @@ def projectJobsAll(projectId):
     
     Returns:
         [json] -- Feladatok és linkek serializálva
-    """
-    project = Project.query.get_or_404(projectId)
+    """    
     jobs = ProjectJob.query.filter(
             and_(ProjectJob.deleted==False,
                  ProjectJob.projectId==projectId
                 )).order_by(ProjectJob.dateStart)
-
-    leaders  = [project.creatorUserId]
-    usersAll = []
-    for user in project.workers:
-        usersAll.append({'id': user.id, 'name': user.fullName})
-    for user in project.leaders:
-        usersAll.append({'id': user.id, 'name': user.fullName})  
-        leaders.append(user.id)
 
     links = ProjectJobLink.query.all()
      

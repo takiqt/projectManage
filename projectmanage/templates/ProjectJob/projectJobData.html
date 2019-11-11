@@ -2,6 +2,12 @@
 {% block body %}
     <h3>Projekt feladat adatlap:&nbsp;{{ projectJob.name }}&nbsp;(#{{projectJob.id}})</h3>  
     <hr>
+    {% if projectJob.parentJobId > 0 %}
+        <h4>
+            {{ getProjectJobName(projectJob.parentJobId) }}&nbsp;(#{{ projectJob.parentJobId }})&nbsp;alfeadata
+        </h4>
+        <hr>
+    {% endif %}
     <div class="content-section">
         <fieldset class="form-group">          
             <div class="container">        
@@ -43,7 +49,7 @@
                         Hossz
                     </div>                
                     <div class="col-8">
-                        {{ projectJob.duration }} óra
+                        {{ projectJob.duration }}&nbsp;óra
                     </div>
                 </div>                    
                 <div class="row">
@@ -51,7 +57,11 @@
                         Becsült idő
                     </div>                
                     <div class="col-8">
-                        {{ projectJob.estimatedTime }} óra
+                        {% if projectJob.estimatedTime > 0%}
+                            {{ projectJob.estimatedTime }}&nbsp;óra
+                        {% else %}
+                            -
+                        {% endif %}
                     </div>
                 </div>
                 <hr>
@@ -60,7 +70,7 @@
                         Összes könyvelt idő
                     </div>                
                     <div class="col-8">
-                        X óra
+                        {{ sumHours }}&nbsp;óra
                     </div>
                 </div>
                 <hr>                    

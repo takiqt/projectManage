@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block body %}
+<h3>
+    Projekt alfeladat felvitel
+</h3>
+<h4>
+    Szülő feladat : {{ parentJob }}
+</h4>
+<div class="content-section">
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}{{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <div class="form-group">
+                {{ form.name.label(class="form-control-label") }}
+                {% if form.name.errors %}
+                    {{ form.name(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.name(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                    {{ form.description.label(class="form-control-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                    <br>
+                        {{ form.description(class="form-control-lg textarea-big",cols='70') }}
+                    {% endif %}
+                </div>                      
+                <div class="form-group">
+                    {{ form.date.label(class="form-control-label") }}
+                    {% if form.date.errors %}
+                        {{ form.date(id="datePick", class="form-control form-control-lg is-invalid datepicker", type="date") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.date(id="datePick", class="form-control-lg datepicker", type="date") }}
+                    {% endif %}
+                    {{ form.start.label(class="form-control-label") }}
+                    {% if form.start.errors %}
+                        {{ form.start(class="form-control form-control-lg is-invalid ", type="time") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.start.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.start( class="form-control-lg", type="time") }}
+                    {% endif %}
+                </div>               
+                <div class="form-group">
+                    {{ form.duration.label(class="form-control-label") }}&nbsp;(óra)
+                    {% if form.duration.errors %}
+                        {{ form.duration(class="form-control form-control-lg is-invalid", type="number", min="1", step="1", placeholder="1") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.duration.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.duration(class="form-control form-control-lg", type="number", min="1", step="1", placeholder="1") }}
+                    {% endif %}                                               
+                </div>
+                <div class="form-group">
+                    {{ form.save(class="btn btn-outline-info") }}
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>    
+                </div> 
+        </fieldset>
+    </form>
+</div>
+{% endblock body %}

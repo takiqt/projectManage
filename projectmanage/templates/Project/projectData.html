@@ -41,7 +41,7 @@
                         Állapot
                     </div>                
                     <div class="col-8">
-                        {{ getProjectStatus(project.id) }}
+                        <b>{{ getProjectStatus(project.id) }}</b>
                     </div>
                 </div>     
                 <hr>
@@ -77,7 +77,7 @@
                 <div class="row">   
                     <div class="col-4 font-weight-bold">
                         Vezetők
-                        {% if current_user == project.creator %}                                                  
+                        {% if current_user == project.creator and project.isModifiable %}                                                  
                             <a href="{{ url_for('projectLeaders', projectId=project.id) }}" class="btn btn-outline-info float-right"><i class="fa fa-cog"></i>&nbsp;Kezelés</a>
                         {% endif %}
                     </div>                
@@ -100,7 +100,7 @@
                 <div class="row">   
                     <div class="col-4 font-weight-bold">
                         Munkatársak
-                        {% if current_user == project.creator %}                        
+                        {% if current_user == project.creator and project.isModifiable %}                        
                             <a href="{{ url_for('projectWorkers', projectId=project.id) }}" class="btn btn-outline-info float-right"><i class="fa fa-cog"></i>&nbsp;Kezelés</a>
                         {% endif %}
                     </div>                
@@ -145,7 +145,7 @@
                 Projekt feladatok
             </h2>
             <hr>
-            {% if current_user in project.leaders or project.creator == current_user %}
+            {% if (current_user in project.leaders or project.creator == current_user) and project.isModifiable %}
                 <a href="{{ url_for('addProjectJob',  projectId=project.id) }}" class="btn btn-outline-info">
                     <i class="fa fa-tasks"></i>&nbsp;<i class="fa fa-plus"></i>&nbsp;Feladat felvitele
                 </a> 
@@ -165,13 +165,27 @@
                 {% if project.projectJobs %}
                     {% for projectJob in project.projectJobs %} 
                         <tr>
-                            <td>{{ projectJob.name }}</td>
+                            <td>
+                                <b>{{ projectJob.name }}</b>
+                                {% if projectJob.parentJobId > 0 %}
+                                    <i class="fa fa-list" title="Alfeladat"></i>
+                                    <p>
+                                     Szülő feladat: {{ getProjectJobName(projectJob.parentJobId) }}
+                                    </p>
+                                {% endif %}
+                            </td>
                             <td>{{ getUserName(projectJob.workerUserId) }}</td>
-                            <td>{{ projectJob.estimatedTime }}&nbsp;óra</td> 
+                            <td>
+                                {% if projectJob.estimatedTime > 0%}
+                                    {{ projectJob.estimatedTime }}&nbsp;óra
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td> 
                             <td>{{ getProjectJobStatus(projectJob.id) }}</td> 
                             <td>
                                 <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>
-                                {% if projectJob.creatorUserId == current_user.id %}
+                                {% if projectJob.isModifiable %}
                                     <a href="{{ url_for('projectJobModify', projectJobId=projectJob.id) }}" class="btn btn-outline-warning"><i class="fa fa-pencil"></i>&nbsp;Módosítás</a>
                                 {% endif %}
                                 {% if project.creator == current_user and projectJob.isDone == true and projectJob.seen == false %}

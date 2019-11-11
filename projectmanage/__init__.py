@@ -28,6 +28,10 @@ manager.add_command('db', MigrateCommand)
 from .models import User
  
 class CreateAdmin(Command):
+    """ Admin felhasználó létrehozás parancssorból
+
+        python run.py createAdmin --userName="adminTest" --password="123456" --fullName="AdminTeszt" --email="admin@admin.hu"
+    """
     option_list = (
         Option('--userName', '-u', dest='userName', required=True, help='Felhasználó név'),
         Option('--fullName', '-f', dest='fullName', required=True, help='Teljes név'),
@@ -37,6 +41,8 @@ class CreateAdmin(Command):
 
     def run(self, userName, fullName, email, password):
         user = User.query.filter(or_(User.userName == userName, User.email == email)).first()
+        if len(password) < 6 or len(password) > 30:
+            print('Jelszó hosszának 6 és 30 karakter között kell lenni!')
         if user is not None:
             print('Adott felhasználónév vagy email foglalt!')
         else:

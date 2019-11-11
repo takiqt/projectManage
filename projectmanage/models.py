@@ -3,12 +3,13 @@ from flask_login import LoginManager, UserMixin, current_user
 from datetime import datetime
 from sqlalchemy import or_, and_, func, text
 
+# Projekt munkatársak kapcsoló tábla
 projectWorkers = db.Table('projectWorkers',
     db.Column('userId', db.Integer, db.ForeignKey('user.id')),
     db.Column('projectId', db.Integer, db.ForeignKey('project.id')),
     db.PrimaryKeyConstraint('userId', 'projectId')
 )
-
+# Projekt vezetők kapcsoló tábla
 projectLeaders = db.Table('projectLeaders',
     db.Column('userId', db.Integer, db.ForeignKey('user.id')),
     db.Column('projectId', db.Integer, db.ForeignKey('project.id')),
@@ -16,6 +17,8 @@ projectLeaders = db.Table('projectLeaders',
 )
 
 class User(UserMixin, db.Model):
+    """ Felhasználó Model 
+    """
     id = db.Column(db.Integer, primary_key=True)
     userName = db.Column(db.String(30), unique=True, nullable=False)
     fullName = db.Column(db.String(150), nullable=False)
@@ -39,10 +42,10 @@ class User(UserMixin, db.Model):
         """ Felhasználó által látható projektek lekérése
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
         
         Returns:
-            [dict] -- Projektek
+            dict -- Projektek
         """
         projects = []
         # Rögzített projektek
@@ -74,10 +77,10 @@ class User(UserMixin, db.Model):
         """ Felhasználó munkáit lekéri kategorizálva
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
         
         Returns:
-            [dict] -- Munkák kategorizálva
+            list -- Munkák kategorizálva
         """
         user = User.query.get_or_404(userId)
         doneJobs = []
@@ -85,7 +88,7 @@ class User(UserMixin, db.Model):
         pendingJobs = []
         for projectJob in user.projectJobsWork:
             project = Project.query.get(projectJob.projectId)
-            if projectJob.seen == False and project.isDone == False and project.deleted == False:
+            if projectJob.seen == False and Project.isActive(project):
                 if projectJob.isDone:
                     doneJobs.append(projectJob)
                 elif projectJob.id == user.activeJobId:
@@ -104,7 +107,7 @@ class User(UserMixin, db.Model):
         """ User passzíválását ellenőrzi
         
         Arguments:
-            user {[User]} -- Passziváló User objektum
+            user {User} -- Passziváló User objektum
         
         Returns:
             bool
@@ -157,9 +160,11 @@ class User(UserMixin, db.Model):
         riport = {}
         sumEstimatedTime = sumBookedTime = jobCount = 0
         for projectJob in self.projectJobsCreated:
-            sumEstimatedTime += projectJob.estimatedTime            
-            sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
-            jobCount += 1
+            # Nem maganak írta ki
+            if not (projectJob.workerUserId == self.id and projectJob.creatorUserId):                
+                sumEstimatedTime += projectJob.estimatedTime                            
+                sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
+                jobCount += 1
 
         if sumEstimatedTime != 0:
             percent = sumBookedTime / sumEstimatedTime * 100
@@ -183,6 +188,8 @@ class User(UserMixin, db.Model):
         }
 
 class UserMessage(db.Model):
+    """ Üzenet Model 
+    """
     id = db.Column(db.Integer, primary_key=True)
     fromUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     toUserId   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -196,10 +203,10 @@ class UserMessage(db.Model):
         """[Felhasználó összes üzeneteinek lekérése]
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
         
         Returns:
-            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+            flask_sqlalchemy.BaseQuery -- Üzenetek
         """
         messages = UserMessage.query.filter(
         or_(
@@ -213,10 +220,10 @@ class UserMessage(db.Model):
         """[Felhasználó kimenő üzeneteinek lekérése]
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
         
         Returns:
-            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+            flask_sqlalchemy.BaseQuery -- Üzenetek
         """
         messages = UserMessage.query.filter(
             UserMessage.fromUserId == userId
@@ -228,10 +235,10 @@ class UserMessage(db.Model):
         """[Felhasználó beérkező üzeneteinek lekérése]
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
                     
         Returns:
-            [flask_sqlalchemy.BaseQuery] -- [Üzenetek]
+            flask_sqlalchemy.BaseQuery -- Üzenetek
         """
         messages = UserMessage.query.filter(
             UserMessage.toUserId == userId
@@ -243,7 +250,7 @@ class UserMessage(db.Model):
         """[Felhasználó beérkező olvasatlan üzenetszám]
         
         Arguments:
-            userId {[int]} -- [Felhasználó azonosító]
+            userId {int} -- [Felhasználó azonosító]
                     
         Returns:
             [int] -- [Üzenetszám]
@@ -261,7 +268,7 @@ class UserMessage(db.Model):
         """ Felhasználó láthatja-e az üzenetet
         
         Arguments:
-            userId {[int]} -- Felhasználó azonosító
+            userId {int} -- Felhasználó azonosító
                     
         Returns:
             bool
@@ -275,13 +282,15 @@ class UserMessage(db.Model):
         """[Üzenet olvasottra állíása]
         
         Arguments:
-            messageId {[int]} -- [Üzenet azonosító]
+            messageId {int} -- [Üzenet azonosító]
         """
         message = UserMessage.query.get_or_404(messageId)
         message.readTime = datetime.now()
         db.session.commit()
 
 class Project(db.Model):
+    """ Projekt Model 
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=False)
@@ -296,14 +305,14 @@ class Project(db.Model):
     delTime = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f"Project: #{self.id} - {self.name}" 
+        return f"Projekt: #{self.id} - {self.name}" 
 
     @staticmethod
     def isClosable(self, userId):
         """ Projekt lezárható-e
         
         Arguments:
-            userId {[int]} -- Felhasználó azonosító
+            userId {int} -- Felhasználó azonosító
         
         Returns:
             bool
@@ -320,7 +329,7 @@ class Project(db.Model):
         """ Projekt archiválható-e
         
         Arguments:
-            userId {[int]} -- Felhasználó azonosító
+            userId {int} -- Felhasználó azonosító
         
         Returns:
             bool
@@ -339,7 +348,7 @@ class Project(db.Model):
         """ Projekt módosítható-e
         
         Arguments:
-            userId {[int]} -- Felhasználó azonosító
+            userId {int} -- Felhasználó azonosító
         
         Returns:
             bool
@@ -352,17 +361,48 @@ class Project(db.Model):
         return True
 
     @staticmethod
+    def isActive(self):
+        """ Projekt folyamatban van-e        
+        
+        Returns:
+            bool
+        """  
+        if self.isDone == True or self.deleted == True:
+            return False
+
+        return True
+
+    @staticmethod
     def isVisible(self, userId):
         """ Projekt látható-e az adott usernek
 
         Arguments:
-            userId {[int]} -- Felhasználó azonosító
+            userId {int} -- Felhasználó azonosító
         
         Returns:
             bool
         """
         if self.creatorUserId == userId:     
             return True
+
+    @staticmethod
+    def getProjectUsers(self):
+        """ Projekt összes felhasználóját adja vissza, vezetők + munkatársak
+
+        Returns:
+            list - Felhasználók
+        """
+        usersAll = []
+        leaders  = [self.creatorUserId]
+        for user in self.workers:
+            if not user.deleted:
+                usersAll.append({'id': user.id, 'name': user.fullName})
+        for user in self.leaders:
+            if not user.deleted:
+                usersAll.append({'id': user.id, 'name': user.fullName})  
+                leaders.append(user.id)  
+
+        return list({u['id']:u for u in usersAll}.values())
 
     @staticmethod
     def getRiportData(self):
@@ -375,7 +415,8 @@ class Project(db.Model):
         sumEstimatedTime = sumBookedTime = 0
         for projectJob in self.projectJobs:
             sumEstimatedTime += projectJob.estimatedTime            
-            sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
+            if not ProjectJob.hasSubJob(projectJob):                
+                sumBookedTime += ProjectJob.getJobWorktimesAll(projectJob.id)
 
         if sumEstimatedTime != 0:
             percent = sumBookedTime / sumEstimatedTime * 100
@@ -389,6 +430,8 @@ class Project(db.Model):
         return riport
 
 class ProjectJob(db.Model):
+    """ Projekt feladat Model 
+    """
     id = db.Column(db.Integer, primary_key=True)
     projectId = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     name = db.Column(db.String(50), unique=False, nullable=False)
@@ -409,8 +452,35 @@ class ProjectJob(db.Model):
     delTime = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f'Projekt feladat: {self.name} (#{self.id})'
+        return f'{self.name} (#{self.id})'
     
+    @staticmethod
+    def isActive(self):
+        """ Projekt feladat folyamatban van-e        
+        
+        Returns:
+            bool
+        """
+        if self.deleted == True or self.isDone == True:
+            return False
+        return True
+
+    @staticmethod
+    def isModifiable(self, userId):
+        """ Projekt feladat módosítható-e
+        
+        Arguments:
+            userId {int} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """        
+        project = Project.query.get_or_404(self.projectId)
+        if self.creatorUserId != userId or not ProjectJob.isActive(self) or not Project.isActive(project):
+            return False
+        else:
+            return True
+
     @staticmethod
     def setDeleted(projectJobId):
         """Feladat töröltre állítása
@@ -421,7 +491,42 @@ class ProjectJob(db.Model):
         projectJob = ProjectJob.query.get_or_404(projectJobId)
         projectJob.deleted = True
         projectJob.delTime = datetime.now()
-        db.session.commit()   
+
+        # Van alfeladata, azokat is törölni
+        if ProjectJob.hasSubJob(projectJob):
+            jobs = ProjectJob.getSubJobs(projectJob)
+            for job in jobs:
+                ProjectJob.setDeleted(job)
+
+        db.session.commit()
+
+    @staticmethod
+    def setDone(projectJobId):
+        """Feladat elkszültre állítása
+        
+        Arguments:
+            projectJobId {int} -- Feladat azonosító
+        """
+        projectJob = ProjectJob.query.get_or_404(projectJobId)
+        projectJob.isDone = True
+        projectJob.doneTime = datetime.now()
+        db.session.commit()
+
+        # Ha alfeladat , megnézzük h a szülő minden alfeladata elkészült-e
+        # Ilyenkor lehet a szülőt elkészültre állítani
+        if ProjectJob.isSubJob(projectJob):
+            parentJob = ProjectJob.query.get_or_404(projectJob.parentJobId)
+            # Van alfeladata
+            if ProjectJob.hasSubJob(parentJob):
+                # Alfeladatok
+                completed = True
+                jobs = ProjectJob.getSubJobs(parentJob)
+                for job in jobs:
+                    if job.isDone == False:
+                        completed = False
+            
+            if completed == True: # Ha minden alfeladat kész, kész a szülő is 
+                ProjectJob.setDone(parentJob.id)
 
     @staticmethod
     def getJobWorktimes(projectJobId):
@@ -448,10 +553,18 @@ class ProjectJob(db.Model):
         Returns:
             float
         """
-        sql = text('select SUM(`workTime`) AS `sum` from `project_job_worktime_history` WHERE `projectJobId` = :projectJobId')
-        result = db.engine.execute(sql, { 'projectJobId' : projectJobId })
-        res = result.fetchone()                
-        return res['sum'] if res['sum'] is not None else 0
+        projectJob = ProjectJob.query.get(projectJobId)
+        if ProjectJob.hasSubJob(projectJob):
+            sumJobsWorkHour = 0
+            subJobs = ProjectJob.getSubJobs(projectJob)
+            for subJob in subJobs:
+                sumJobsWorkHour += ProjectJob.getJobWorktimesAll(subJob.id)
+            return sumJobsWorkHour
+        else:
+            sql = text('select SUM(`workTime`) AS `sum` from `project_job_worktime_history` WHERE `projectJobId` = :projectJobId')
+            result = db.engine.execute(sql, { 'projectJobId' : projectJobId })
+            res = result.fetchone()                
+            return res['sum'] if res['sum'] is not None else 0
 
     @staticmethod
     def getJobWorktimesByUser(projectJobId, userId):
@@ -468,6 +581,83 @@ class ProjectJob(db.Model):
         result = db.engine.execute(sql, { 'projectJobId' : projectJobId, 'userId' : userId })
         res = result.fetchone()                
         return res['sum'] if res['sum'] is not None else 0
+
+    @staticmethod
+    def canCreateSubJob(self, userId):
+        """ Feladathoz lehet-e rögzíteni alfeladatot
+        
+        Arguments:
+            self {Object} -- Feladat
+            userId {int}  -- Felhasználó azonosító
+
+        Returns:
+            bool
+        """ 
+
+        # Nem aktív feladat
+        sql = text('select COUNT(*) AS `count` from `project_job` INNER JOIN `user` ON `user`.`activeJobId` = `project_job`.`id` WHERE `project_job`.`id` = :id')
+        result = db.engine.execute(sql, { 'id' : self.id })
+        res = result.fetchone()        
+        if res['count'] > 0:
+            return False
+
+        # Van munkaidő rögzítve
+        if self.getJobWorktimesAll(self.id) != 0:
+            return False
+
+        # Már egy alfeladat, tovább nem bontható
+        if self.parentJobId > 0:
+            return False
+
+        # Mástól kaptam, én végzem el 
+        if self.workerUserId == self.creatorUserId or self.workerUserId != userId:
+            return False
+
+        # Nem törölt, nem elkészült
+        if not ProjectJob.isActive(self):
+            return False
+
+        # Projektje nem törölt, nem elkészült
+        project = Project.query.get_or_404(self.projectId)
+        if not Project.isActive(project):
+            return False
+
+        return True      
+
+    @staticmethod
+    def isSubJob(self):
+        """ Feladat alfeladat-e
+        
+        Returns:
+            bool
+        """
+        return True if self.parentJobId > 0 else False
+
+    @staticmethod 
+    def hasSubJob(self):
+        """ Feladathoz tartozik-e alfeladat ami nem archívált (törölt)
+        
+        Returns:
+            bool
+        """
+        sql = text('select COUNT(*) AS `count` from `project_job` WHERE `deleted` = 0 AND `project_job`.`parentJobId` = :id')
+        result = db.engine.execute(sql, { 'id' : self.id })
+        res = result.fetchone()                
+        if res['count'] > 0:
+            return True
+
+        return False
+
+    @staticmethod
+    def getSubJobs(self):
+        """ Alfeladatok lekérdezése
+
+        Returns:
+            flask_sqlalchemy.BaseQuery -- Feladatok
+        """
+        jobs = ProjectJob.query.filter(ProjectJob.parentJobId == self.id).all()
+
+        return jobs
 
     @property
     def serialize(self):
@@ -488,10 +678,12 @@ class ProjectJob(db.Model):
             'projectId'  : self.projectId,
             'color'      : 'green' if self.isDone == True else 'd',
             'open'       : True,
-            'readonly'   : False if (current_user.id in leaders or self.creatorUserId == current_user.id) and self.isDone == False else True,
+            'readonly'   : True if not ProjectJob.isModifiable(self, current_user.id) else False,
         }
 
 class ProjectJobLink(db.Model):
+    """ Projekt feladat kapcsolat Model 
+    """
     id = db.Column(db.Integer, primary_key=True)
     source = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
     target = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
@@ -508,13 +700,12 @@ class ProjectJobLink(db.Model):
             'type' : self.type,
         }
 
-class ProjectJobWorktimeHistory(db.Model):   
+class ProjectJobWorktimeHistory(db.Model):
+    """ Projekt feladat munkaidő Model 
+    """   
     id = db.Column(db.Integer, primary_key=True)
     projectJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
     workTime = db.Column(db.Float, nullable=False)
     comment  = db.Column(db.Text, nullable=False)
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     createUserId =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    def __repr__(self):
-        return f'Munkaidő - #{self.projectJobId} - Idő: {self.workTime} óra'
