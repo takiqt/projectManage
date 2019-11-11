@@ -90,6 +90,7 @@ def jobManageFromChart(projectJobId):
         projectJob.name      = data['text']
         projectJob.description = data['desc']
         projectJob.workerUserId = data['userId'] 
+        projectJob.parentJobId = data['parent'] 
  
         db.session.add(projectJob)
         db.session.commit()

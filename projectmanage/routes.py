@@ -60,7 +60,7 @@ def userGantt():
 def projects():
     """ Projekt lista
     
-    Returns:0
+    Returns:
         response
     """
     if current_user.admin == True:
@@ -365,9 +365,12 @@ def deleteProjectLeader(projectId):
         userId = request.form.get('delUserId')
         user = User.query.filter_by(id=userId).first()
         if user is not None:
-            project.leaders.remove(user)
-            db.session.commit() 
-            flash(f'Vezető törölve!', 'success')
+            if not User.hasProjectConnection(user, project):
+                project.leaders.remove(user)
+                db.session.commit() 
+                flash(f'Vezető törölve!', 'success')
+            else:
+                flash(f'Vezető nem törölhető, van létrehozott vagy elvégzendő feladata!', 'danger')
     else:
         flash(f'Projekt nem módosítható', 'danger')
         return redirect(url_for('projectData', projectId=projectId))
@@ -390,9 +393,12 @@ def deleteProjectWorker(projectId):
         userId = request.form.get('delUserId')
         user = User.query.filter_by(id=userId).first()
         if user is not None:
-            project.workers.remove(user)
-            db.session.commit() 
-            flash(f'Munkatárs törölve!', 'success')
+            if not User.hasProjectConnection(user, project):
+                project.workers.remove(user)
+                db.session.commit() 
+                flash(f'Munkatárs törölve!', 'success')
+            else:
+                flash(f'Munkatárs nem törölhető, van létrehozott vagy elvégzendő feladata!', 'danger')
     else:
         flash(f'Projekt nem módosítható', 'danger')
         return redirect(url_for('projectData', projectId=projectId))
@@ -484,7 +490,7 @@ def projectJobModify(projectJobId):
         duration = form.duration.data
         dateStart = datetime.combine(date, start)
         dateEnd = dateStart + timedelta(hours=duration)
-
+        originalWorkerUserId = projectJob.workerUserId
         projectJob.name = form.name.data
         projectJob.description = form.description.data
         projectJob.dateStart = dateStart
@@ -496,7 +502,15 @@ def projectJobModify(projectJobId):
         db.session.add(projectJob)
         db.session.commit()
 
-        flash(f'Sikeres projekt feladat módosítás!', 'success')
+        subJobsText = ''
+        if ProjectJob.hasSubJob(projectJob) and projectJob.workerUserId != originalWorkerUserId:
+            for job in ProjectJob.getSubJobs(projectJob):
+                job.workerUserId = form.users.data
+                db.session.add(job)
+                db.session.commit()
+            subJobsText = ' Projekt alfeladatainak felhasználója is módosítva!'
+
+        flash(f'Sikeres projekt feladat módosítás!' + subJobsText, 'success')
         return redirect(url_for('projectData', projectId=projectJob.projectId))
     else:
         form.name.data = projectJob.name
@@ -511,6 +525,7 @@ def projectJobModify(projectJobId):
         data = {
             'form' : form,
             'modify' : True,
+            'hasSubJob' : ProjectJob.hasSubJob(projectJob),
             'activeLink' : 'projects',
             'projectId' : projectJob.projectId,
         }
@@ -526,15 +541,49 @@ def projectJobData(projectJobId):
     
     Returns:
         response
-    """
+    """    
     projectJob = ProjectJob.query.get_or_404(projectJobId)
     project = Project.query.get_or_404(projectJob.projectId)
     if project not in User.getUserVisibleProjects(current_user.id):
         return redirect(url_for('projects'))
+
+    projectJob.hasSubJob = ProjectJob.hasSubJob(projectJob)   
+    
+    if ProjectJob.hasSubJob(projectJob) :
+        worktimesAll = [] 
+        worktimesSorted = [] # Nincs feladat munkaidő        
+        for job in ProjectJob.getSubJobs(projectJob):
+            worktimes = ProjectJob.getJobWorktimes(job.id)
+            for worktime in worktimes:
+                user = User.query.get(worktime.createUserId)
+                projectSubJob = ProjectJob.query.get(job.id)
+                userName = user.fullName
+                worktimesAll.append({
+                    'projectJobName' : projectSubJob.name, 
+                    'userName' :userName, 
+                    'date' : worktime.createTime, 
+                    'workTime' : worktime.workTime   
+                })        
+        worktimesSubJob = sorted(worktimesAll, key=lambda k:  k['date'])
+    else:
+        projectJob.workTimes = ProjectJob.getJobWorktimes(projectJobId)
+        worktimes = []
+        worktimesSubJob = [] # Nincs alfeladat munkaidő
+        for worktime in projectJob.workTimes:
+            user = User.query.get(worktime.createUserId)
+            worktimes.append({
+                'userName' : user.fullName, 
+                'date' : worktime.createTime, 
+                'workTime' : worktime.workTime  
+            })
+        worktimesSorted = sorted(worktimes, key=lambda k:  k['date'])
+
     data = {
         'projectJob' : projectJob,
-        'project' : project,
-        'sumHours' : ProjectJob.getJobWorktimesAll(projectJob.id),
+        'project'    : project,
+        'worktimes'  : worktimesSorted,
+        'worktimesSubJob'  : worktimesSubJob,
+        'sumHours'   : ProjectJob.getJobWorktimesAll(projectJob.id),
         'activeLink' : 'projects', 
     }
     return render_template('ProjectJob/projectJobData.html', **data)

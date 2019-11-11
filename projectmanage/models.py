@@ -38,6 +38,28 @@ class User(UserMixin, db.Model):
         return f"Felhasználó: #{self.id} - {self.fullName}"
     
     @staticmethod
+    def hasProjectConnection(self, project):
+        """ Felhasználónak van-e kiírt vagy elvégzendő feladata az adott projektben
+        
+        Arguments:
+            project {Object} -- Projekt objektum
+        
+        Returns:
+            bool
+        """
+        jobs = ProjectJob.query.filter(
+            or_(
+                ProjectJob.creatorUserId == self.id,
+                ProjectJob.workerUserId == self.id
+            )
+        ).filter(ProjectJob.projectId == project.id).filter(ProjectJob.deleted==False).all()
+
+        if len(jobs) > 0 or project.creatorUserId == self.id:
+            return True
+        else:
+            return False
+
+    @staticmethod
     def getUserVisibleProjects(userId):
         """ Felhasználó által látható projektek lekérése
         
@@ -678,6 +700,7 @@ class ProjectJob(db.Model):
             'projectId'  : self.projectId,
             'color'      : 'green' if self.isDone == True else 'd',
             'open'       : True,
+            'parent'     : self.parentJobId,
             'readonly'   : True if not ProjectJob.isModifiable(self, current_user.id) else False,
         }
 

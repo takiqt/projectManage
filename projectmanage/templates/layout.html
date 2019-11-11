@@ -10,10 +10,9 @@
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/base.css') }}">    
     <link rel="stylesheet" text="text/css" href="{{ url_for('static', filename='css/timer.css') }}">    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datepicker/0.6.5/datepicker.css" integrity="sha256-n3ci71vDbbK59GUg1tuo+c3KO7+pnBOzt7BDmOe87s4=" crossorigin="anonymous" />
-
   <body>
     {% include 'includes/_navbar.html' %}
-    <main role="main" class="container">
+    <main role="main" class="container-fluid" style="width: 80%;">
         <div class="row">               
             <div class="col-md-10">
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -43,8 +42,6 @@
                 <div class="col-md-2">
                   <audio id="startAudio" src="{{ url_for('static', filename='assets/sound/start.mp3') }}" type="audio/mpeg"></audio>
                   <audio id="endAudio"   src="{{ url_for('static', filename='assets/sound/end.mp3') }}" type="audio/mpeg"></audio>
-
-                    
                         <h3 style="text-align: center;">Pomodoro</h3>
                         <div class="clock">
                             <div class="timer">
@@ -76,14 +73,11 @@
                               <button class="time-reset">Újra</button>
                             </div><!-- /.controls -->
                           </div><!-- /.clock -->
-                    
                 </div>
             {% endif %}
         </div>
     </main>
-    
     {% include 'includes/_footer.html' %}
-    
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.0.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
@@ -94,5 +88,5 @@
     {% if current_user.is_authenticated %}
       <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
     {% endif %}
-</body>
+  </body>
 </html>

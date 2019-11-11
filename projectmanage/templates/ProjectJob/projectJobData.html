@@ -103,4 +103,75 @@
         </fieldset>
         <a href="{{ url_for('projectData', projectId=projectJob.projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     
     </div>
+
+    <!-- Munkaidők -->
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Feladatra könyvelt munkaidők
+            </h2>
+            <hr>            
+        </fieldset>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>                    
+                    <th scope="col">Munkatárs</th>
+                    <th scope="col">Dátum&nbsp;<i class="fa fa-arrow-down"></i></th>
+                    <th scope="col">Munkaidő (óra)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if worktimes %}
+                    {% for worktime in worktimes %}
+                        <tr>                         
+                            <td>{{ worktime.userName }}</td>
+                            <td>{{ worktime.date }}</td>   
+                            <td>{{ worktime.workTime }}</td>   
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">Nincs könyvelve munkaidő!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% if projectJob.hasSubJob %}
+    <!-- Alfeladatok Munkaidők -->
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Feladat alfeladataira könyvelt munkaidők
+            </h2>
+            <hr>            
+        </fieldset>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>                    
+                    <th scope="col">Feladat név</th>
+                    <th scope="col">Munkatárs</th>
+                    <th scope="col">Dátum&nbsp;<i class="fa fa-arrow-down"></i></th>
+                    <th scope="col">Munkaidő (óra)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if worktimesSubJob %}
+                    {% for worktime in worktimesSubJob %}
+                        <tr>        
+                            <td>{{ worktime.projectJobName }}</td>                 
+                            <td>{{ worktime.userName }}</td>
+                            <td>{{ worktime.date }}</td>   
+                            <td>{{ worktime.workTime }}</td>   
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">Nincs könyvelve munkaidő!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 {% endblock body %}

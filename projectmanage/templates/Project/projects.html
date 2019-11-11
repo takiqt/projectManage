@@ -6,6 +6,8 @@
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">Név</th>
+                <th scope="col">Létrehozó</th>
+                <th scope="col">Létrehozás ideje</th>
                 <th scope="col">Állapot</th>
                 <th scope="col">Műveletek</th>
             </tr>
@@ -16,6 +18,8 @@
                 <tr style="vertical-align: center;">
                     <td> {{ project.id }} </td>
                     <td> {{ project.name}} </td>
+                    <td> {{ getUserName(project.creatorUserId) }} </td>
+                    <td> {{ project.createTime.strftime('%Y-%m-%d %H:%M') }} </td>
                     <td> {{ getProjectStatus(project.id) }} </td>
                     <td>
                         <a href="{{ url_for('projectData', projectId=project.id) }}" class="btn btn-outline-info"><i class="fa fa-folder"></i>&nbsp;Adatok</a>

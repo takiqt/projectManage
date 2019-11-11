@@ -24,7 +24,16 @@ body {
 -------------------------------------------------- */
 
 .textarea-big {
-    min-height: 250px;
+	min-height: 250px;
+	resize: both;
+	overflow: auto;
+}
+
+textarea {	
+	left:10px; top:10px;	
+	width:  calc(51vw - 17px);    
+	height: calc(100vh - 20px);
+	resize: none;
 }
 
 .gantLayoutMain {
