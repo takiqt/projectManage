@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>Projekt feladathoz fájl feltöltés:&nbsp;{{ projectJob.name }}&nbsp;(#{{projectJob.id}})</h3>
+    <hr>
+    {% if projectJob.parentJobId > 0 %}
+    <h4>
+        {{ getProjectJobName(projectJob.parentJobId) }}&nbsp;(#{{ projectJob.parentJobId }})&nbsp;alfeadata
+    </h4>
+    <hr>
+    {% endif %}
+    <form action="{{ url_for('uploadFileToJob', projectJobId=projectJob.id) }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Válassz fájlt</label>
+            <div class="custom-file">
+                <input oninput="fileSize(this);" type="file" class="custom-file-input" name="file" id="file">
+                <label class="custom-file-label" for="image">Tallózás...</label>
+            </div>
+        </div>
+        <hr>
+        <button type="submit" class="btn btn-outline-primary">
+            <i class="fa fa-plus"></i>&nbsp;Feltöltés
+        </button>
+    </form>
+    <br>
+    <a href="{{ url_for('projectJobData', projectJobId=projectJob.id) }}" class="btn btn-outline-secondary">
+        <i class="fa fa-reply"></i>&nbsp;Vissza
+    </a>
+{% endblock body %}
+
+{% block script %}
+    <script>
+        function fileSize(element) {
+            document.cookie = `fileSize=${element.files[0].size}`;
+        }
+    </script>
+{% endblock script %}

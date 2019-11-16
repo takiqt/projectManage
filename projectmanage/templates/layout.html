@@ -88,5 +88,7 @@
     {% if current_user.is_authenticated %}
       <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
     {% endif %}
+    <!-- Scripts-->
+    {% block script %}{% endblock %}
   </body>
 </html>

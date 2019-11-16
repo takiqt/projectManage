@@ -2,7 +2,8 @@ from flask import render_template, url_for, request, session, redirect, flash, R
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
-from projectmanage.models import User, Project, ProjectJob, ProjectJobLink, ProjectJobWorktimeHistory, UserMessage
+from projectmanage.models import User, UserMessage, Project, ProjectJob, ProjectJobLink, \
+                                 ProjectJobWorktimeHistory, ProjectJobFile
 from projectmanage.forms import RegisterForm, LoginForm, SendMessageForm, ModifyAccountBaseDataForm, \
                                 ModifyAccountPasswordForm, AddAndModifyProjectForm, AddProjectWorker, AddProjectLeader, \
                                 AddAndModifyProjectJobForm, AddAndModifyProjectJobSubJob, AddProjectWorkTimeForm
@@ -10,7 +11,9 @@ from projectmanage.functions import load_user, page_not_found, is_safe_url, my_u
 from projectmanage.api import userJobsAll, projectJobsAll, jobAddFromChart, jobManageFromChart, \
                               linkAddFromChart, linkManageFromChart
 from datetime import datetime, timedelta
-import pprint
+from werkzeug.utils import secure_filename
+from random import randint
+import pprint, os
 
 # ----
 # Projektre / Projekt feladatra vonatkozó URL-k
@@ -583,10 +586,113 @@ def projectJobData(projectJobId):
         'project'    : project,
         'worktimes'  : worktimesSorted,
         'worktimesSubJob'  : worktimesSubJob,
-        'sumHours'   : ProjectJob.getJobWorktimesAll(projectJob.id),
+        'sumHours'   : ProjectJob.getJobWorktimesAll(projectJob.id),        
         'activeLink' : 'projects', 
     }
     return render_template('ProjectJob/projectJobData.html', **data)
+
+
+def allowedFile(fileName):
+    """ Feltött file kiterjesztés ellenőrzés
+    
+    Arguments:
+        fileName {string} -- filenév
+    
+    Returns:
+        bool
+    """
+    if not '.' in fileName:
+        return False
+
+    extension = fileName.rsplit('.', 1)[1]
+    if extension.upper() in app.config['FILE_EXTENSIONS']:
+        return True
+    else: 
+        return False
+
+def allowedFileSize(fileSize):
+    """ Feltött file méret ellenőrzés
+    
+    Arguments:
+        fileSize {int} -- file méret byteban
+    
+    Returns:
+        bool
+    """
+    if int(fileSize) <= app.config['FILE_UPLOAD_SIZE']:
+        return True
+    else:
+        return False
+
+@app.route('/uploadFileToJob/<int:projectJobId>', methods=['GET', 'POST'])
+@login_required
+def uploadFileToJob(projectJobId):
+    """ Projekt feladathoz file feltöltése
+    
+    Arguments:
+        projectJobId {int} -- Projekt feladat azonosító
+    
+    Returns:
+        response
+    """
+    projectJob = ProjectJob.query.get_or_404(projectJobId)
+    project = Project.query.get_or_404(projectJob.projectId)
+    if project not in User.getUserVisibleProjects(current_user.id):
+        return redirect(url_for('projects'))
+    
+    data = {
+        'projectJob' : projectJob,
+        'allowed'    : str(app.config['FILE_EXTENSIONS']).strip('[]').lower(),
+        'maxSize'    : str(app.config['FILE_UPLOAD_SIZE'] / pow(1024, 2)) + ' MB',
+        'activeLink' : 'projects', 
+    }
+    
+    if request.method == 'POST':        
+        if request.files:            
+            file = request.files['file']
+            fileName = file.filename
+            # Név, kiterjesztés ellenőrzés
+            if fileName == '' or not allowedFile(fileName):
+                flash(f'Nem megengedett kiterjesztés!', 'danger')
+                return render_template('ProjectJob/upload.html', **data)
+            # Méret ellenőrzés
+            if not allowedFileSize(request.cookies.get("fileSize")):
+                flash(f'Fájl mérete meghaladja a megengedett méretet!', 'danger')
+                return render_template('ProjectJob/upload.html', **data)
+            # Biztonságos egyedi filename 
+            secureFileName = str(projectJobId) + '_' + str(randint(1,500)) + '_' + secure_filename(fileName)            
+            savePath = os.path.join(app.config['FILE_UPLOADS'], secureFileName)
+            # Mentés       
+            file.save(savePath)                        
+            # Ha kijátsza a cookie-t akkor mentés után újra ellenőrzés
+            if not allowedFileSize(os.path.getsize(savePath)) and os.path.exists(savePath):
+                os.remove(savePath)
+                flash(f'Fájl mérete meghaladja a megengedett méretet!', 'danger')
+                return render_template('ProjectJob/upload.html', **data)
+            else:
+                # Kapcsolat a Projekt feladattal
+                fileData = {
+                    'projectJobId'  : projectJobId,
+                    'fileName'      : secureFileName,
+                    'createTime'    : datetime.now(),
+                    'creatorUserId' : current_user.id,
+                }
+                projectJobFile = ProjectJobFile(**fileData)
+                db.session.add(projectJobFile)
+                db.session.commit()
+                flash(f'Sikeres fájl feltöltés! {secureFileName}', 'success')    
+
+    return render_template('ProjectJob/upload.html', **data)
+
+@app.route('/downloadFile/<int:fileId>')
+@login_required
+def downloadFile(fileId):
+    pass
+
+@app.route('/removeFile/<int:fileId>')
+@login_required
+def removeFile(fileId):
+    pass
 
 @app.route('/startJob/<int:projectJobId>')
 @login_required

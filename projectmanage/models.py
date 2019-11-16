@@ -472,6 +472,7 @@ class ProjectJob(db.Model):
     seenTime = db.Column(db.DateTime, nullable=True)
     deleted  = db.Column(db.Boolean, nullable=False, default=False)
     delTime = db.Column(db.DateTime, nullable=True)
+    files = db.relationship('ProjectJobFile', backref='projectJob', lazy=True)
 
     def __repr__(self):
         return f'{self.name} (#{self.id})'
@@ -732,3 +733,15 @@ class ProjectJobWorktimeHistory(db.Model):
     comment  = db.Column(db.Text, nullable=False)
     createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     createUserId =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class ProjectJobFile(db.Model):
+    """ Projekt feladat file Model 
+    """   
+    id = db.Column(db.Integer, primary_key=True)
+    projectJobId = db.Column(db.Integer, db.ForeignKey('project_job.id'), nullable=False)
+    fileName = db.Column(db.Text, nullable=False)    
+    createTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    creatorUserId =  db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    deleted  = db.Column(db.Boolean, nullable=False, default=False)
+    delTime = db.Column(db.DateTime, nullable=True)
+    

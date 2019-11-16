@@ -3,12 +3,15 @@
 __pycache__
 migrations
 projectmanage/__pycache__
+projectmanage/static/files
+projectmanage/static/files/deleted
 migrations/__pycache__
 config.py
 info.txt
 charts.pdf
 pm.db
 project.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -103,7 +103,53 @@
         </fieldset>
         <a href="{{ url_for('projectData', projectId=projectJob.projectId) }}" class="btn btn-outline-secondary"><i class="fa fa-reply"></i>&nbsp;Vissza</a>     
     </div>
-
+    <!-- Files -->
+    <div class="content-section">
+        <fieldset class="form-group">
+            <h2>
+                Feladathoz feltöltött fájlok
+            </h2>                       
+            <hr> 
+            {% if not projectJob.deleted %}
+                <a href="{{ url_for('uploadFileToJob', projectJobId=projectJob.id) }}" class="btn btn-outline-info"><i class="fa fa-file"></i>&nbsp;Fájl feltöltés</a>     
+            {% endif %}
+        </fieldset>     
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>                    
+                    <th scope="col">Munkatárs</th>
+                    <th scope="col">Dátum&nbsp;<i class="fa fa-arrow-down"></i></th>
+                    <th scope="col">Fájl</th>
+                    <th scope="col">Műveletek</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if projectJob.files %}
+                    {% for file in projectJob.files %}                        
+                        <tr>                         
+                            <td>{{ getUserName(file.creatorUserId) }}</td>
+                            <td>{{ file.createTime.strftime('%Y-%m-%d %H:%M') }}</td>   
+                            <td>{{ file.fileName }}</td>
+                            <td>
+                                {% if file.deleted %}
+                                    Törölt fájl.
+                                {% else %}
+                                    <a href="{{ url_for('downloadFile', fileId=file.id) }}" class="btn btn-outline-info"><i class="fa fa-download"></i>&nbsp;Letöltés</a> 
+                                    {% if current_user.id == file.creatorUserId %}
+                                        <a href="{{ url_for('removeFile', fileId=file.id) }}" class="btn btn-outline-danger"><i class="fa fa-remove"></i>&nbsp;Törlés</a>    
+                                    {% endif %}
+                                {% endif %}
+                            </td>   
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">Nincs fájl feltöltve!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
     <!-- Munkaidők -->
     <div class="content-section">
         <fieldset class="form-group">
@@ -126,12 +172,12 @@
                         <tr>                         
                             <td>{{ worktime.userName }}</td>
                             <td>{{ worktime.date }}</td>   
-                            <td>{{ worktime.workTime }}</td>   
+                            <td>{{ worktime.workTime.strftime('%Y-%m-%d %H:%M') }}</td>   
                         </tr>
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="4">Nincs könyvelve munkaidő!</td>
+                    <td colspan="3">Nincs könyvelve munkaidő!</td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -162,7 +208,7 @@
                             <td>{{ worktime.projectJobName }}</td>                 
                             <td>{{ worktime.userName }}</td>
                             <td>{{ worktime.date }}</td>   
-                            <td>{{ worktime.workTime }}</td>   
+                            <td>{{ worktime.workTime.strftime('%Y-%m-%d %H:%M') }}</td>   
                         </tr>
                     {% endfor %}
                 {% else %}
