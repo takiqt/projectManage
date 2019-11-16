@@ -164,6 +164,7 @@
                     <th scope="col">Munkatárs</th>
                     <th scope="col">Dátum&nbsp;<i class="fa fa-arrow-down"></i></th>
                     <th scope="col">Munkaidő (óra)</th>
+                    <th scope="col">Megjegyzés</th>
                 </tr>
             </thead>
             <tbody>
@@ -171,13 +172,14 @@
                     {% for worktime in worktimes %}
                         <tr>                         
                             <td>{{ worktime.userName }}</td>
-                            <td>{{ worktime.date }}</td>   
-                            <td>{{ worktime.workTime.strftime('%Y-%m-%d %H:%M') }}</td>   
+                            <td>{{ worktime.date.strftime('%Y-%m-%d %H:%M') }}</td>   
+                            <td>{{ worktime.workTime }}</td>   
+                            <td>{{ worktime.comment|replace('\n', '<br />')|safe }}</td>   
                         </tr>
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="3">Nincs könyvelve munkaidő!</td>
+                    <td colspan="4">Nincs könyvelve munkaidő!</td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -199,6 +201,7 @@
                     <th scope="col">Munkatárs</th>
                     <th scope="col">Dátum&nbsp;<i class="fa fa-arrow-down"></i></th>
                     <th scope="col">Munkaidő (óra)</th>
+                    <th scope="col">Megjegyzés</th>
                 </tr>
             </thead>
             <tbody>
@@ -207,13 +210,14 @@
                         <tr>        
                             <td>{{ worktime.projectJobName }}</td>                 
                             <td>{{ worktime.userName }}</td>
-                            <td>{{ worktime.date }}</td>   
-                            <td>{{ worktime.workTime.strftime('%Y-%m-%d %H:%M') }}</td>   
+                            <td>{{ worktime.date.strftime('%Y-%m-%d %H:%M') }}</td>   
+                            <td>{{ worktime.workTime }}</td>   
+                            <td>{{ worktime.comment|replace('\n', '<br />')|safe }}</td>   
                         </tr>
                     {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="4">Nincs könyvelve munkaidő!</td>
+                    <td colspan="5">Nincs könyvelve munkaidő!</td>
                 </tr>
                 {% endif %}
             </tbody>

@@ -29,6 +29,38 @@ def is_safe_url(urlTarget):
     return testUrl.scheme in ('http', 'https') and \
             refUrl.netloc == testUrl.netloc
 
+def allowedFile(fileName):
+    """ Feltött file kiterjesztés ellenőrzés
+    
+    Arguments:
+        fileName {string} -- filenév
+    
+    Returns:
+        bool
+    """
+    if not '.' in fileName:
+        return False
+
+    extension = fileName.rsplit('.', 1)[1]
+    if extension.upper() in app.config['FILE_EXTENSIONS']:
+        return True
+    else: 
+        return False
+
+def allowedFileSize(fileSize):
+    """ Feltött file méret ellenőrzés
+    
+    Arguments:
+        fileSize {int} -- file méret byteban
+    
+    Returns:
+        bool
+    """
+    if int(fileSize) <= app.config['FILE_UPLOAD_SIZE']:
+        return True
+    else:
+        return False
+        
 @app.errorhandler(404)
 def page_not_found(e):
     """ Error handler oldal

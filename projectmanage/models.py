@@ -2,6 +2,7 @@ from projectmanage import db, app
 from flask_login import LoginManager, UserMixin, current_user
 from datetime import datetime
 from sqlalchemy import or_, and_, func, text
+import os
 
 # Projekt munkatársak kapcsoló tábla
 projectWorkers = db.Table('projectWorkers',
@@ -745,3 +746,42 @@ class ProjectJobFile(db.Model):
     deleted  = db.Column(db.Boolean, nullable=False, default=False)
     delTime = db.Column(db.DateTime, nullable=True)
     
+    @staticmethod
+    def deletable(self):
+        """ Projekt feladat file törlése feltételének ellenőrzése
+    
+        Arguments:
+            self {object} -- Projekt feladat objektum
+        
+        Returns:
+            bool
+        """    
+        if self.deleted == True:
+            return False
+        if self.creatorUserId != current_user.id:
+            return False
+        if not os.path.exists(os.path.join(app.config['FILE_UPLOADS'], self.fileName)):
+            return False
+
+        return True
+
+    @staticmethod
+    def deleteFile(self):
+        """ Projekt feladat file törlése, és átmozgatása 
+            a törölt könyvtárba
+    
+        Arguments:
+            self {object} -- Projekt feladat objektum
+        
+        Returns:
+            bool
+        """
+        if self.deletable(self):
+            # Fizikailag töröltek mappába mozgatás
+            os.rename(os.path.join(app.config['FILE_UPLOADS'], self.fileName), os.path.join(app.config['FILE_UPLOADS'], 'deleted', self.fileName))
+            self.deleted = True
+            self.delTime = datetime.now()
+            db.session.commit()
+            return True
+        else:
+            return False

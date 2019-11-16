@@ -1,4 +1,5 @@
-from flask import render_template, url_for, request, session, redirect, flash, Response, jsonify
+from flask import render_template, url_for, request, session, redirect, \
+                  flash, Response, jsonify, send_from_directory, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_, text
 from projectmanage import app, db, bcrypt, loginManager
@@ -7,7 +8,8 @@ from projectmanage.models import User, UserMessage, Project, ProjectJob, Project
 from projectmanage.forms import RegisterForm, LoginForm, SendMessageForm, ModifyAccountBaseDataForm, \
                                 ModifyAccountPasswordForm, AddAndModifyProjectForm, AddProjectWorker, AddProjectLeader, \
                                 AddAndModifyProjectJobForm, AddAndModifyProjectJobSubJob, AddProjectWorkTimeForm
-from projectmanage.functions import load_user, page_not_found, is_safe_url, my_utility_processor
+from projectmanage.functions import load_user, page_not_found, is_safe_url, my_utility_processor, \
+                                    allowedFile, allowedFileSize
 from projectmanage.api import userJobsAll, projectJobsAll, jobAddFromChart, jobManageFromChart, \
                               linkAddFromChart, linkManageFromChart
 from datetime import datetime, timedelta
@@ -565,7 +567,8 @@ def projectJobData(projectJobId):
                     'projectJobName' : projectSubJob.name, 
                     'userName' :userName, 
                     'date' : worktime.createTime, 
-                    'workTime' : worktime.workTime   
+                    'workTime' : worktime.workTime,
+                    'comment' : worktime.comment
                 })        
         worktimesSubJob = sorted(worktimesAll, key=lambda k:  k['date'])
     else:
@@ -577,7 +580,8 @@ def projectJobData(projectJobId):
             worktimes.append({
                 'userName' : user.fullName, 
                 'date' : worktime.createTime, 
-                'workTime' : worktime.workTime  
+                'workTime' : worktime.workTime,
+                'comment' : worktime.comment
             })
         worktimesSorted = sorted(worktimes, key=lambda k:  k['date'])
 
@@ -590,39 +594,6 @@ def projectJobData(projectJobId):
         'activeLink' : 'projects', 
     }
     return render_template('ProjectJob/projectJobData.html', **data)
-
-
-def allowedFile(fileName):
-    """ Feltött file kiterjesztés ellenőrzés
-    
-    Arguments:
-        fileName {string} -- filenév
-    
-    Returns:
-        bool
-    """
-    if not '.' in fileName:
-        return False
-
-    extension = fileName.rsplit('.', 1)[1]
-    if extension.upper() in app.config['FILE_EXTENSIONS']:
-        return True
-    else: 
-        return False
-
-def allowedFileSize(fileSize):
-    """ Feltött file méret ellenőrzés
-    
-    Arguments:
-        fileSize {int} -- file méret byteban
-    
-    Returns:
-        bool
-    """
-    if int(fileSize) <= app.config['FILE_UPLOAD_SIZE']:
-        return True
-    else:
-        return False
 
 @app.route('/uploadFileToJob/<int:projectJobId>', methods=['GET', 'POST'])
 @login_required
@@ -660,7 +631,7 @@ def uploadFileToJob(projectJobId):
                 flash(f'Fájl mérete meghaladja a megengedett méretet!', 'danger')
                 return render_template('ProjectJob/upload.html', **data)
             # Biztonságos egyedi filename 
-            secureFileName = str(projectJobId) + '_' + str(randint(1,500)) + '_' + secure_filename(fileName)            
+            secureFileName = str(projectJobId) + '_' + str(randint(1, 1000)) + '_' + secure_filename(fileName)            
             savePath = os.path.join(app.config['FILE_UPLOADS'], secureFileName)
             # Mentés       
             file.save(savePath)                        
@@ -687,12 +658,41 @@ def uploadFileToJob(projectJobId):
 @app.route('/downloadFile/<int:fileId>')
 @login_required
 def downloadFile(fileId):
-    pass
+    """ Projekt feladat file letöltése
+    
+    Arguments:
+        fileId {int} -- Projekt feladat file azonosító
+    
+    Returns:
+        response
+    """
+    projectJobFile = ProjectJobFile.query.get_or_404(fileId)
+    if projectJobFile.projectJob.project in User.getUserVisibleProjects(current_user.id):
+        try:
+            return send_from_directory(app.config['FILE_UPLOADS'], filename=projectJobFile.fileName, as_attachment=True)
+        except FileNotFoundError:
+            abort(404)
 
 @app.route('/removeFile/<int:fileId>')
 @login_required
 def removeFile(fileId):
-    pass
+    """ Projekt feladat file törlése, és átmozgatása 
+        a törölt könyvtárba
+    
+    Arguments:
+        fileId {int} -- Projekt feladat file azonosító
+    
+    Returns:
+        response
+    """
+    projectJobFile = ProjectJobFile.query.get_or_404(fileId)
+    if projectJobFile.projectJob.project in User.getUserVisibleProjects(current_user.id) and projectJobFile.creatorUserId == current_user.id:
+        if ProjectJobFile.deleteFile(projectJobFile):
+            flash(f'Fájl törölve!', 'success')
+        else:
+            flash(f'Fájl nem törölhető!', 'danger')
+
+    return redirect(url_for('projectJobData', projectJobId=projectJobFile.projectJobId))
 
 @app.route('/startJob/<int:projectJobId>')
 @login_required
