@@ -2,6 +2,7 @@ from projectmanage import app, db, loginManager
 from urllib.parse import urlparse, urljoin
 from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
 from flask import url_for, request, redirect
+from datetime import datetime
 
 @loginManager.user_loader
 def load_user(userId):    
@@ -60,7 +61,7 @@ def allowedFileSize(fileSize):
         return True
     else:
         return False
-        
+
 @app.errorhandler(404)
 def page_not_found(e):
     """ Error handler oldal
@@ -80,6 +81,15 @@ def my_utility_processor():
     Returns:
         dict
     """
+    def getCurrentYear():
+        """ Aktuális év a footerbe
+
+        Returns:
+            string
+        """
+        return datetime.now().strftime('%Y')
+
+
     def getProjectName(projectId):
         """ Projekt név lekérés
 
@@ -169,6 +179,7 @@ def my_utility_processor():
         return UserMessage.getUnreadCount(userId)
 
     return dict(
+        getCurrentYear=getCurrentYear,
         getProjectName=getProjectName, 
         getProjectStatus=getProjectStatus, 
         getUserName=getUserName, 
