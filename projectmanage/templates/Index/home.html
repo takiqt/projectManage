@@ -44,7 +44,7 @@
                         &nbsp;<i class="fa fa-exclamation"></i>&nbsp;
                     </a>
                   {% else %}
-                    <a href="{{ url_for('startJob', projectJobId=projectJob.id) }}" class="btn btn-outline-info" title="Feladat levétele">
+                    <a href="{{ url_for('startJob', projectJobId=projectJob.id) }}" class="btn btn-outline-info startJobButton" title="Feladat levétele">
                         <i class="fa fa-arrow-down"></i>&nbsp;Levesz
                     </a>
                   {% endif %}
@@ -71,6 +71,9 @@
                             {{ getProjectName(activeJob.projectId) }}
                         </p>               
                         <hr>
+                        <label class="form-control-label">Pomodoro</label>
+                        <p class="activeJobDisplay form-control"></p>
+
                         <form action="{{ url_for('manageJob', projectJobId=activeJob.id) }}" method="POST">
                             {{ form.hidden_tag() }}
                             <div class="form-group">
@@ -82,8 +85,8 @@
                                 {{ form.comment(class="form-control") }}
                             </div>
                             <hr>
-                            <button type="submit" name="pending" class="btn btn-outline-warning" title="Várakozóra állítás"><i class="fa fa-arrow-left"></i></button>                        
-                            <button type="submit" name="done"    class="btn btn-outline-success" title="Elkészültre állítás"><i class="fa fa-check"></i></button>                        
+                            <button type="submit" name="pending" class="btn btn-outline-warning endJobButton" title="Várakozóra állítás"><i class="fa fa-arrow-left"></i></button>                        
+                            <button type="submit" name="done"    class="btn btn-outline-success endJobButton" title="Elkészültre állítás"><i class="fa fa-check"></i></button>                        
                         </form>                                    
                     </div>
                 </div>

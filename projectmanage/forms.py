@@ -193,5 +193,5 @@ class AddProjectWorkTimeForm(FlaskForm):
     Arguments:
         FlaskForm {Object} -- FlaskForm ősosztály
     """
-    workTime = FloatField('Munkaidő', validators=[DataRequired(message="Megadása kötelező!")])
+    workTime = FloatField('Munkaidő (óra)', validators=[DataRequired(message="Megadása kötelező!")])
     comment = TextAreaField('Megjegyzés', validators=[DataRequired(message="Megadása kötelező!")])

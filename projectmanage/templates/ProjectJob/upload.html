@@ -10,7 +10,9 @@
     {% endif %}
     <form action="{{ url_for('uploadFileToJob', projectJobId=projectJob.id) }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-            <label>Válassz fájlt</label>
+            <div class="p-2 mb-1 bg-info text-white">Megengedett fájltípusok: {{ allowed }}</div>             
+            <div class="p-2 mb-1 bg-info text-white">Maximális méret: {{ maxSize }}</div>             
+            <label class="font-weight-bold">Válassz fájlt</label>
             <div class="custom-file">
                 <input oninput="fileSize(this);" type="file" class="custom-file-input" name="file" id="file">
                 <label class="custom-file-label" for="image">Tallózás...</label>

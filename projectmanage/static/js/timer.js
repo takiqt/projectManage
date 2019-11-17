@@ -10,6 +10,16 @@ $(function() {
         setActive = false;
     }
 
+    if (localStorage.getItem('jobActive') !== null) {
+        if (localStorage.getItem('jobActive') == 1) {
+            setJobActive = true;            
+        } else {
+            setJobActive = false;
+        }
+    } else {
+        setJobActive = false;
+    }
+
     if (localStorage.getItem('type') !== null) {        
         if (localStorage.getItem('type') == "Break") {
             setType = "Break";
@@ -50,6 +60,12 @@ $(function() {
         setSessionCount = 0;
     }
 
+    if (localStorage.getItem('jobTime') !== null) {
+        setJobTime = parseInt(localStorage.getItem('jobTime'));
+    } else {
+        setJobTime = 0;
+    }
+
     // Inicializálás
     var clock = new Clock();
     if (setActive == true) {
@@ -81,6 +97,13 @@ $(function() {
     $(".time-reset").click(function() {
         clock.reset();
     });
+    $(".startJobButton").click(function() {
+        clock.startActiveJob();
+    });
+    $(".endJobButton").click(function() {        
+        clock.endActiveJob();
+    });
+
         
     // Clock metódusokkal és változókkal
     function Clock() {      
@@ -93,17 +116,21 @@ $(function() {
         sessionTime = setSessionTime, // Munkamenet idő seconds
         breakTime = setBreakTime, // Szünet idő seconds
         sessionCount = setSessionCount, // Munkamenetek száma
+        jobActive  = setJobActive // Aktív feladat mérés van-e
+        jobTime  = setJobTime // Aktív feladat mérés
         startAudio  = document.getElementById("startAudio"); 
         endAudio  = document.getElementById("endAudio");
         
         // Mentés  
         localStorage.setItem('active', (active == true ? 1 : 0) );
+        localStorage.setItem('jobActive', (jobActive == true ? 1 : 0) );
         localStorage.setItem('type', type);
         localStorage.setItem('startTime', startTime);
         localStorage.setItem('currentTime', currentTime);
         localStorage.setItem('sessionTime', sessionTime);
         localStorage.setItem('breakTime', breakTime);
         localStorage.setItem('sessionCount', sessionCount);
+        localStorage.setItem('jobTime', jobTime);
 
         // Formázás  
         function formatTime(secs) {
@@ -117,6 +144,23 @@ $(function() {
             if (hours > 0) result += (hours + ":");
             result += (addLeadingZeroes(minutes) + ":" + addLeadingZeroes(seconds));
             return result;
+        }
+        // Aktív munka kezelés
+        this.startActiveJob = function() {
+            jobActive = true;
+            localStorage.setItem('jobActive', 1);
+            if (active === false) {
+                this.toggleClock();
+            }
+        }
+        this.endActiveJob = function() {
+            jobActive = false;
+            jobTime = 0;
+            localStorage.setItem('jobActive', 0);
+            localStorage.setItem('jobTime', 0);
+            if (active === true) {
+                this.toggleClock();
+            }
         }
       
         // Munkamenet hossz beállítása      
@@ -164,6 +208,10 @@ $(function() {
                 return c.replace(/(^|\s)step-\S+/g, " step-" + (100 - parseInt((currentTime / startTime) * 100)));
             });
         }
+
+        this.displayCurrentJobTime = function() {
+            $('.activeJobDisplay').text(formatTime(jobTime));
+        }
       
         this.displaySessionTime = function() {
             $('.time-session .time-session-display').text(parseInt(sessionTime / 60) + " perc");
@@ -177,7 +225,7 @@ $(function() {
             if (sessionCount === 0) {
                 $('.session-count').html("<h2 class=\"timer-h\">Nincs mérés</h2>");
             } else if (type === "Session") {
-                $('.session-count').html("<h2 class=\"timer-h\">Munkamenet " + sessionCount + "</h2>"); 
+                $('.session-count').html("<h2 class=\"timer-h\">Munka " + sessionCount + "</h2>"); 
             } else if (type === "Break") {
                 $('.session-count').html("<h2 class=\"timer-h\">Szünet!</h2>");
             }
@@ -210,6 +258,11 @@ $(function() {
         this.stepDown = function() {
             if (currentTime > 0) {
                 currentTime --;
+                if (jobActive === true) {
+                    jobTime ++;
+                    localStorage.setItem('jobTime', jobTime);
+                    this.displayCurrentJobTime();
+                }
                 localStorage.setItem('currentTime', currentTime);
                 this.displayCurrentTime();
                 if (currentTime === 0) {
