@@ -486,7 +486,7 @@ def projectJobModify(projectJobId):
 
     form.users.choices = projectUserChoices
 
-    if current_user.id != projectJob.creatorUserId or not ProjectJob.isActive(projectJob):
+    if not ProjectJob.isModifiable(projectJob, current_user.id):
         flash(f'Projekt feladat nem módosítható!', 'danger')
         return redirect(url_for('index'))
     if form.validate_on_submit():        
@@ -706,7 +706,7 @@ def startJob(projectJobId):
         response
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
-    if ProjectJob.isModifiable(projectJob, current_user.id):
+    if ProjectJob.isManagable(projectJob, current_user.id):
         current_user.activeJobId = projectJobId
         db.session.commit()
     else:
@@ -726,7 +726,7 @@ def manageJob(projectJobId):
         response
     """
     projectJob = ProjectJob.query.get_or_404(projectJobId)
-    if not ProjectJob.isModifiable(projectJob, current_user.id) or request.method == 'GET':
+    if not ProjectJob.isManagable(projectJob, current_user.id) or request.method == 'GET':
         flash(f'Feladat nem módosítható!', 'danger')
         return redirect(url_for('index'))
     comment = request.form.get('comment')

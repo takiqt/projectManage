@@ -506,6 +506,22 @@ class ProjectJob(db.Model):
             return True
 
     @staticmethod
+    def isManagable(self, userId):
+        """ Projekt feladat állapota módosítható-e a felhasználónak
+        
+        Arguments:
+            userId {int} -- Felhasználó azonosító
+        
+        Returns:
+            bool
+        """   
+        project = Project.query.get_or_404(self.projectId)
+        if self.workerUserId != userId or not ProjectJob.isActive(self) or not Project.isActive(project):
+            return False
+        else:
+            return True
+
+    @staticmethod
     def setDeleted(projectJobId):
         """Feladat töröltre állítása
         

@@ -145,10 +145,13 @@ $(function() {
             result += (addLeadingZeroes(minutes) + ":" + addLeadingZeroes(seconds));
             return result;
         }
+        
         // Aktív munka kezelés
         this.startActiveJob = function() {
             jobActive = true;
+            jobTime = 0;
             localStorage.setItem('jobActive', 1);
+            localStorage.setItem('jobTime', 0);
             if (active === false) {
                 this.toggleClock();
             }
