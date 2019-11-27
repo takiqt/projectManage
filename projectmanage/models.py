@@ -216,7 +216,7 @@ class UserMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fromUserId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     toUserId   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    subject = db.Column(db.String(50), unique=True, nullable=False)
+    subject = db.Column(db.String(50), nullable=False)
     text = db.Column(db.Text, nullable=False)
     sentTime = db.Column(db.DateTime, nullable=False, default=datetime.now)
     readTime = db.Column(db.DateTime, nullable=True)
@@ -599,7 +599,7 @@ class ProjectJob(db.Model):
             subJobs = ProjectJob.getSubJobs(projectJob)
             for subJob in subJobs:
                 sumJobsWorkHour += ProjectJob.getJobWorktimesAll(subJob.id)
-            return sumJobsWorkHour
+            return round(sumJobsWorkHour, 2)
         else:
             sql = text('select SUM(`workTime`) AS `sum` from `project_job_worktime_history` WHERE `projectJobId` = :projectJobId')
             result = db.engine.execute(sql, { 'projectJobId' : projectJobId })
