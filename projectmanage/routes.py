@@ -9,7 +9,7 @@ from projectmanage.forms import RegisterForm, LoginForm, SendMessageForm, Modify
                                 ModifyAccountPasswordForm, AddAndModifyProjectForm, AddProjectWorker, AddProjectLeader, \
                                 AddAndModifyProjectJobForm, AddAndModifyProjectJobSubJob, AddProjectWorkTimeForm
 from projectmanage.functions import load_user, page_not_found, is_safe_url, my_utility_processor, \
-                                    allowedFile, allowedFileSize
+                                    allowedFile, allowedFileSize, remove_tags
 from projectmanage.api import userJobsAll, projectJobsAll, jobAddFromChart, jobManageFromChart, \
                               linkAddFromChart, linkManageFromChart
 from datetime import datetime, timedelta
@@ -99,8 +99,8 @@ def addProject():
             return render_template('Project/addProject.html', **data)
         else:
             projectData = {
-                'name' : form.name.data,
-                'description' : form.description.data,
+                'name' : remove_tags(form.name.data),
+                'description' : remove_tags(form.description.data),
                 'dateStart' : form.dateStart.data,
                 'dateEnd' : form.dateEnd.data,
                 'creatorUserId' : current_user.id,

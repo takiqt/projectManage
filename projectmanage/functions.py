@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urljoin
 from projectmanage.models import User, Project, ProjectJob, ProjectJobWorktimeHistory, UserMessage
 from flask import url_for, request, redirect
 from datetime import datetime
+import re
 
 @loginManager.user_loader
 def load_user(userId):    
@@ -29,6 +30,18 @@ def is_safe_url(urlTarget):
     testUrl = urlparse(urljoin(request.host_url, urlTarget))
     return testUrl.scheme in ('http', 'https') and \
             refUrl.netloc == testUrl.netloc
+
+def remove_tags(text):
+    """ Szöveg input tisztítása regex-el
+
+    Arguments:
+        text {string} -- Szöveg
+
+    Returns:
+        string
+    """
+    tag = re.compile(r'<[^>]+>')
+    return tag.sub('', text)
 
 def allowedFile(fileName):
     """ Feltött file kiterjesztés ellenőrzés
