@@ -4,6 +4,7 @@ from sqlalchemy import or_, and_, text
 from projectmanage import app, db
 from projectmanage.models import User, Project, ProjectJob, ProjectJobLink
 from datetime import datetime
+from projectmanage.functions import remove_tags
 
 @app.route('/api/jobList', methods=['GET'])
 @login_required
@@ -55,8 +56,8 @@ def jobAddFromChart():
         projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
         projectJob.duration  = data['duration']
         projectJob.estimatedTime = data['duration']
-        projectJob.name        = data['text']
-        projectJob.description = data['desc']
+        projectJob.name        = remove_tags(data['text'])
+        projectJob.description = remove_tags(data['desc'])
         projectJob.creatorUserId = current_user.id
         projectJob.workerUserId = data['userId']    
 
@@ -87,8 +88,8 @@ def jobManageFromChart(projectJobId):
         projectJob.dateStart = datetime.strptime(data['start_date'], '%d-%m-%Y %H:%M')
         projectJob.dateEnd   = datetime.strptime(data['end_date']  , '%d-%m-%Y %H:%M')
         projectJob.duration  = data['duration']
-        projectJob.name      = data['text']
-        projectJob.description = data['desc']
+        projectJob.name      = remove_tags(data['text'])
+        projectJob.description = remove_tags(data['desc'])
         projectJob.workerUserId = data['userId'] 
         projectJob.parentJobId = data['parent'] 
  

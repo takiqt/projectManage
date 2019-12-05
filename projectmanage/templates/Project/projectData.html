@@ -167,6 +167,9 @@
                         <tr>
                             <td>
                                 <b>{{ projectJob.name }}</b>
+                                {% if projectJob.isDone %}
+                                    <i class="fa fa-check"></i>
+                                {% endif %}
                                 {% if projectJob.parentJobId > 0 %}
                                     <i class="fa fa-list" title="Alfeladat"></i>
                                     <p>
@@ -226,7 +229,7 @@
                             <tr>
                                 <td>{{ worktime.projectJobName }}</td>
                                 <td>{{ worktime.userName }}</td>
-                                <td>{{ worktime.date }}</td>   
+                                <td>{{ worktime.date.strftime('%Y-%m-%d %H:%M') }}</td>   
                                 <td>{{ worktime.workTime }}</td>   
                             </tr>
                         {% endfor %}

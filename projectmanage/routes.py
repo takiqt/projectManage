@@ -191,8 +191,8 @@ def projectModify(projectId):
             }
             return render_template('Project/addProject.html', **data)
         else:             
-            project.name = form.name.data
-            project.description = form.description.data
+            project.name = remove_tags(form.name.data)
+            project.description = remove_tags(form.description.data)
             project.dateStart = form.dateStart.data
             project.dateEnd = form.dateEnd.data
 
@@ -440,8 +440,8 @@ def addProjectJob(projectId):
         dateEnd = dateStart + timedelta(hours=duration)
 
         projectJobData = {
-            'name' : form.name.data,
-            'description' : form.description.data,            
+            'name' : remove_tags(form.name.data),
+            'description' : remove_tags(form.description.data),            
             'dateStart' : dateStart,
             'dateEnd' : dateEnd,
             'estimatedTime' : form.estimatedTime.data,
@@ -496,8 +496,8 @@ def projectJobModify(projectJobId):
         dateStart = datetime.combine(date, start)
         dateEnd = dateStart + timedelta(hours=duration)
         originalWorkerUserId = projectJob.workerUserId
-        projectJob.name = form.name.data
-        projectJob.description = form.description.data
+        projectJob.name = remove_tags(form.name.data)
+        projectJob.description = remove_tags(form.description.data)
         projectJob.dateStart = dateStart
         projectJob.dateEnd = dateEnd
         projectJob.estimatedTime = form.estimatedTime.data
@@ -729,7 +729,7 @@ def manageJob(projectJobId):
     if not ProjectJob.isManagable(projectJob, current_user.id) or request.method == 'GET':
         flash(f'Feladat nem módosítható!', 'danger')
         return redirect(url_for('index'))
-    comment = request.form.get('comment')
+    comment = remove_tags(request.form.get('comment'))
     workTimeString = request.form.get('workTime')
     workTime = float(workTimeString.replace(',', '.'))
     done = request.form.get('done')
@@ -812,8 +812,8 @@ def projectJobCreateSubJob(parentJobId):
         dateEnd = dateStart + timedelta(hours=duration)
         
         projectJobData = {
-            'name' : form.name.data,
-            'description' : form.description.data,            
+            'name' : remove_tags(form.name.data),
+            'description' : remove_tags(form.description.data),            
             'dateStart' : dateStart,
             'dateEnd' : dateEnd,
             'estimatedTime' : 0,
@@ -874,8 +874,8 @@ def register():
         else:
             hashedPassword = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             userData = {
-                'userName' : form.userName.data,
-                'fullName' : form.fullName.data,
+                'userName' : remove_tags(form.userName.data),
+                'fullName' : remove_tags(form.fullName.data),
                 'password' : hashedPassword,
                 'email'    : form.email.data
             }
@@ -1056,7 +1056,7 @@ def account():
 
     if form.validate_on_submit():
         email = form.email.data
-        userName =  form.userName.data
+        userName =  remove_tags(form.userName.data)
         oldUser = User.query.filter(
             or_(User.userName == userName, User.email == email), 
             and_(User.id != current_user.id)
@@ -1130,8 +1130,8 @@ def sendMessage(targetUserId, subject):
     )).order_by(User.fullName).all()    
     if form.validate_on_submit() and form.toUserId.data.id != current_user.id:       
         messageData = {
-            'text' : form.text.data,
-            'subject' : form.subject.data,
+            'text' : remove_tags(form.text.data),
+            'subject' : remove_tags(form.subject.data),
             'fromUserId' : current_user.id,
             'toUserId' : form.toUserId.data.id,
         }
